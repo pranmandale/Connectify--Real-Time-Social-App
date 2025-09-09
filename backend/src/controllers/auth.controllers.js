@@ -127,29 +127,35 @@ export const logout = async (req, res) => {
 };
 
 export const refreshToken = async (req, res) => {
-    try{
-        const token = req.cookies.refreshToken;
-        if(!token) {
-            return res.status(400).json({
-                error: "no token found"
-            })
-        }
+  try {
+    const token = req.cookies?.refreshToken;
 
-        const user = await User.findByRefreshToken(token);
-        if(!user) {
-            return res.status(400).json({
-                error: "user not found"
-            })
-        }
-
-        const accessToken = await user.generateToken();
-        return res.status(202).json({
-            accessToken
-        })
-    } catch(error) {
-        return res.status(400).json({
-            error: "internal server error",
-             errorr
-        })
+    if (!token) {
+      return res.status(200).json({
+        accessToken: null,
+        message: "No refresh token provided",
+      });
     }
-}
+
+    const user = await User.findByRefreshToken(token);
+    if (!user) {
+      return res.status(200).json({
+        accessToken: null,
+        message: "User not found or token invalid",
+      });
+    }
+
+    const accessToken = await user.generateToken();
+
+    return res.status(200).json({
+      accessToken,
+    });
+  } catch (error) {
+    // console.error("Refresh token error:", error); // Log server-side
+    return res.status(500).json({
+      accessToken: null,
+      message: "Internal server error",
+    });
+  }
+};
+
