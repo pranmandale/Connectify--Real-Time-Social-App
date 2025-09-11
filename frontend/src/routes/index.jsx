@@ -3,6 +3,7 @@ import Dashboard from "../pages/Dashboard";
 import Login from "../pages/Login";
 import Signup from "../pages/Signup";
 import ProtectedRoute from "./ProtectedRoutes";
+import ForgotPassword from "../pages/ForgotPassword";
 
 const AppRoutes = ({ isAuthenticated }) => {
   return (
@@ -11,6 +12,7 @@ const AppRoutes = ({ isAuthenticated }) => {
       <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />} />
       <Route path="/signup" element={!isAuthenticated ? <Signup /> : <Navigate to="/dashboard" />} />
       <Route path="/" element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />} />
+      <Route path="/forgot-password" element={!isAuthenticated ? <ForgotPassword /> : <Navigate to="/login"/>}/>
 
       {/* Protected routes */}
       <Route 

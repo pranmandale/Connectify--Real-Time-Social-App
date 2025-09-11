@@ -1,14 +1,14 @@
-import {jwtDecode} from "jwt-decode"
-
+import { jwtDecode } from "jwt-decode";
 
 export const decodedToken = (token) => {
-    if(!token) null;
+  if (!token) return null;   // stop here if no token
 
-    try{
-        const decodedToken = jwtDecode(token);
-        return decodedToken;
-    } catch(error) {
-        console.log("error decoding token");
-        return null;
-    }
-}
+  try {
+    const decoded = jwtDecode(token);
+    console.log("Decoded token:", decoded);
+    return decoded;
+  } catch (error) {
+    console.log("error decoding token", error);
+    return null;
+  }
+};

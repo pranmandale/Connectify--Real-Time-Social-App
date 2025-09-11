@@ -7,11 +7,11 @@ import { decodedToken } from "../../utils/decoded.js"
 const API_URL = import.meta.env.VITE_NODE_URL;
 
 const initialState = {
-    user: null,
     isAuthenticated: false,
     isInitialized: false,
     loading: false,
-    error: null
+    error: null,
+    user: undefined,
 }
 
 
@@ -74,7 +74,7 @@ export const logout = createAsyncThunk(
     "auth/logout",
     async (_, { rejectWithValue, dispatch }) => {
         try {
-            await axios.get(`${API_URL}/auth/logout`, {}, {
+            await axios.get(`${API_URL}/auth/logout`, {
                 headers: { 'Content-Type': 'application/json' },
                 withCredentials: true,
             });
@@ -82,6 +82,53 @@ export const logout = createAsyncThunk(
         } catch (error) {
             return rejectWithValue(error.response?.data || { message: error.message || "server error" });
 
+        }
+    }
+)
+
+
+export const sendResetOTP = createAsyncThunk(
+    "auth/resetOtp",
+    async (credentials, { rejectWithValue, dispatch }) => {
+        try {
+            const response = await axios.post(`${API_URL}/auth/send-otp`, credentials, {
+                headers: { 'Content-Type': 'application/json' },
+                withCredentials: true
+            })
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data || { message: error.message || "server error" })
+        }
+    }
+)
+
+export const verifyResetOTP = createAsyncThunk(
+    "auth/verify-otp",
+    async (credentials, { rejectWithValue, dispatch }) => {
+        try {
+            const response = await axios.post(`${API_URL}/auth/verify-otp`, credentials, {
+                headers: { 'Content-Type': 'application/json' },
+                withCredentials: true
+            })
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data || { message: error.message || "server error" })
+        }
+    }
+)
+
+
+export const resetPassword = createAsyncThunk(
+    "auth/reset-pass",
+    async (credentials, { rejectWithValue, dispatch }) => {
+        try {
+            const response = await axios.post(`${API_URL}/auth/reset-password`, credentials, {
+                headers: { 'Content-Type': 'application/json' },
+                withCredentials: true
+            })
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data || { message: error.message || "server error" })
         }
     }
 )
@@ -110,10 +157,10 @@ const authSlice = createSlice({
                 const accessToken = action.payload.accessToken;
                 if (accessToken) {
                     const decoded = decodedToken(accessToken);
-                    state.user = decoded.user;
+                    state.user = decoded;
                 }
             })
-            .addCase(signUp.rejected, (state, action) => {  // ✅ keep action
+            .addCase(signUp.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload?.message || "Registration failed";
                 state.isAuthenticated = false;
@@ -129,7 +176,7 @@ const authSlice = createSlice({
                 const accessToken = action.payload?.accessToken;
                 if (accessToken) {
                     const decoded = decodedToken(accessToken);
-                    state.user = decoded.user;
+                    state.user = decoded;   // ✅ store full decoded payload
                 }
             })
             .addCase(login.rejected, (state, action) => {
@@ -145,7 +192,7 @@ const authSlice = createSlice({
                 const accessToken = action.payload.accessToken;
                 if (accessToken) {
                     const decoded = decodedToken(accessToken);
-                    state.user = decoded.user;
+                    state.user = decoded;   // ✅ store full decoded payload
                     state.isAuthenticated = true;
                 }
                 state.loading = false;

@@ -1,4 +1,6 @@
 import User from "../models/user.model.js"
+import sendMail from "../utils/Mail.js";
+import {generateOtpHtml} from "../utils/OtpTemplate.js"
 
 
 
@@ -33,7 +35,7 @@ export const signUp = async (req, res) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production", // use secure cookies in production
             sameSite: "Strict",
-            maxAge: 10 * 365 * 24 * 60 * 60 * 1000 // 10 years
+            maxAge: 30 * 24 * 60 * 60 * 1000 
         });
 
         return res.status(201).json({
@@ -73,7 +75,7 @@ export const login = async (req, res) => {
 
         if(!user) {
             return res.status(400).json({
-                message: "user not found!"
+                message: "invalid credentials"
             })
         }
 
@@ -92,7 +94,7 @@ export const login = async (req, res) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production", // use secure cookies in production
             sameSite: "Strict",
-            maxAge: 10 * 365 * 24 * 60 * 60 * 1000 // 10 years
+            maxAge: 30 * 24 * 60 * 60 * 1000 
         });
 
         return res.status(200).json({
@@ -158,4 +160,99 @@ export const refreshToken = async (req, res) => {
     });
   }
 };
+
+
+export const sendOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(200).json({ message: "user not found" });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.resetOtp = otp;
+    user.otpExpire = Date.now() + 5 * 60 * 1000; 
+    user.isVerified = false;
+    await user.save();
+
+    const htmlTemplate = generateOtpHtml(otp, user.name);
+
+    await sendMail(
+      email,
+      otp,
+      "Your OTP Code - Connectify",
+      htmlTemplate
+    );
+
+    return res.status(200).json({ message: "OTP sent successfully" });
+
+    
+  } catch (error) {
+    return res.status(400).json({
+      message: "server error",
+      error,
+    });
+  }
+};
+
+export const verifyOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Email and OTP are required" });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({ message: "User not exist" });
+    }
+
+    if (user.resetOtp !== otp || user.otpExpire < Date.now()) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    user.isVerified = true;
+    user.resetOtp = undefined;
+    user.otpExpire = undefined;
+    await user.save();
+
+    return res.status(200).json({ message: "OTP verified successfully" });
+  } catch (error) {
+    console.error("❌ OTP verification error:", error); // 👈 see real error
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({ message: "User not exist" });
+    }
+
+    if (!user.isVerified) {
+      return res.status(400).json({ message: "User is not verified" });
+    }
+
+    user.password = password;
+    user.isVerified = false; // reset verification after password change
+    await user.save();
+
+    return res.status(200).json({ message: "Password updated successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error });
+  }
+};
+
+
+
+
+
+
 

@@ -68,10 +68,6 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: ""
     },
-    isVerified : {
-        type: Boolean,
-        default: false
-    },
     reels : [
         {type: mongoose.Schema.Types.ObjectId,
             ref: "Reel"
@@ -82,6 +78,17 @@ const userSchema = new mongoose.Schema({
             ref: "Story"    
         }
     ],
+    resetOtp : {
+        type: String
+    },
+    otpExpire : {
+        type : Date
+    },
+    isVerified : {
+        type: Boolean,
+        default: false
+    },
+
 }, {timestamps: true});
 
 
@@ -100,13 +107,18 @@ userSchema.methods.comparePassword = async function(password) {
 
 // generating token
 userSchema.methods.generateToken =  function() {
-    const token =  jwt.sign({_id : this._id}, process.env.JWT_SECRET, {expiresIn: '10m'});
+    const payload = {
+    _id: this._id,
+    userName: this.userName,
+    email: this.email,
+    }
+    const token =  jwt.sign(payload, process.env.JWT_SECRET, {expiresIn: '10m'});
     return token;
 }    
 
 // generate long lived refresh token 
 userSchema.methods.generateRefreshToken = function () {
-    const refreshToken = jwt.sign({_id : this._id}, process.env.JWT_REFRESH_SECRET, {expiresIn: "10y"});
+    const refreshToken = jwt.sign({_id : this._id}, process.env.JWT_REFRESH_SECRET, {expiresIn: "30d"});
     return refreshToken;
 }
 
