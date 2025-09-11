@@ -1,10 +1,14 @@
-import { Search, MessageCircle, Phone, Video, MoreHorizontal } from "lucide-react"
-import { useSelector } from "react-redux";
+"use client"
+
+import { Search, MessageCircle } from "lucide-react"
+import { useSelector } from "react-redux"
+import { useNavigate } from "react-router-dom"
 import dp from "../../assets/s1.png"
 
-
-
 const RightPart = () => {
+  const navigate = useNavigate()
+  const { profile } = useSelector((state) => state.user)
+
   const conversations = [
     {
       id: 1,
@@ -33,14 +37,16 @@ const RightPart = () => {
       isOnline: true,
       unread: 0,
     },
-  ];
+  ]
 
-  const { user } = useSelector(state => state.auth)
-  console.log(user)
+  const suggestedUsers = [
+    { id: 1, name: "sarah_jones", avatar: "/diverse-user-avatars.png", mutualFriends: 5 },
+    { id: 2, name: "alex_brown", avatar: "/diverse-user-avatars.png", mutualFriends: 3 },
+    { id: 3, name: "emma_davis", avatar: "/diverse-user-avatars.png", mutualFriends: 8 },
+  ]
 
   return (
     <div className="w-[25%] hidden lg:flex flex-col h-screen bg-white/80 backdrop-blur-sm p-6">
-
       {/* Messages Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-gray-800 text-xl font-semibold">Messages</h2>
@@ -58,7 +64,7 @@ const RightPart = () => {
       </div>
 
       {/* Messages List with fixed height */}
-      <div className="flex-1 overflow-y-auto mb-4">
+      <div className="flex-1 overflow-y-auto mb-4 scrollbar-hide">
         <h3 className="text-gray-600 font-medium mb-2">Recent</h3>
         <div className="space-y-3">
           {conversations.map((conversation) => (
@@ -104,21 +110,23 @@ const RightPart = () => {
         {/* Account Info */}
         <div className="flex items-center space-x-4">
           <img
-            src={dp}
+            src={dp || "/placeholder.svg"}
             alt="Profile"
             className="w-14 h-14 rounded-full border-2 border-purple-200"
           />
           <div>
-            <h3 className="text-gray-800 font-semibold text-2xl cursor-pointer">{user.userName}</h3>
-            <p className="text-gray-500 text-md">{user.email}</p>
+            <h3
+              className="text-gray-800 font-semibold text-2xl cursor-pointer hover:text-purple-600 transition-colors"
+              onClick={() => navigate(`/profile/${profile?.userName}`)}
+            >
+              {profile?.userName}
+            </h3>
+            <p className="text-gray-500 text-md">{profile?.email}</p>
           </div>
         </div>
       </div>
-
     </div>
-  );
-};
+  )
+}
 
-export default RightPart;
-
-
+export default RightPart

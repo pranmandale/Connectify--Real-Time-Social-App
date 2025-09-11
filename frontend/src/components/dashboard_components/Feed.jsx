@@ -10,11 +10,13 @@ import {
   Film,
   User,
 } from "lucide-react"
-import { useSelector } from "react-redux"
+import StoryCard from "../common/StoryCard"
+import dp from "../../assets/s1.png"
+
 
 const Feed = () => {
   const stories = [
-    { id: 1, name: "Your Story", avatar: "/diverse-user-avatars.png", isOwn: true },
+    { id: 1, name: "Your Story", avatar: dp, isOwn: true },
     { id: 2, name: "john_doe", avatar: "/diverse-user-avatars.png", isOwn: false },
     { id: 3, name: "jane_smith", avatar: "/diverse-user-avatars.png", isOwn: false },
     { id: 4, name: "mike_wilson", avatar: "/diverse-user-avatars.png", isOwn: false },
@@ -53,32 +55,12 @@ const Feed = () => {
       <div className="p-4 ">
         <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
           {stories.map((story) => (
-            <div key={story.id} className="flex flex-col items-center space-y-1 min-w-[70px]">
-              {/* Story Circle */}
-              <div
-                className={`w-16 h-16 rounded-full p-1 ${story.isOwn
-                  ? "bg-gray-300 flex items-center justify-center"
-                  : "bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600"
-                  }`}
-              >
-                <img
-                  src={story.avatar || "/placeholder.svg"}
-                  alt={story.name}
-                  className={`w-full h-full rounded-full border-2 border-white object-cover ${story.isOwn ? "p-0.5" : ""
-                    }`}
-                />
-                {story.isOwn && (
-                  <div className="absolute -bottom-0.5 right-0 w-5 h-5 bg-purple-600 rounded-full flex items-center justify-center border-2 border-white text-white text-xs font-bold">
-                    +
-                  </div>
-                )}
-              </div>
-
-              {/* Story Name */}
-              <span className="text-gray-700 text-xs text-center max-w-[70px] truncate">
-                {story.isOwn ? "Your Story" : story.name}
-              </span>
-            </div>
+            <StoryCard
+              key={story.id}
+              profileImage={story.avatar}
+              userName={story.name}
+              isOwn={story.isOwn}
+            />
           ))}
         </div>
       </div>

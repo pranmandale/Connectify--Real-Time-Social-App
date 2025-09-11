@@ -21,6 +21,7 @@ export const authenticate = async (req, res, next) => {
             return res.status(404).json({ error: "User not found" });
         }
 
+        
         req.user = user;
         next();
     } catch (error) {
