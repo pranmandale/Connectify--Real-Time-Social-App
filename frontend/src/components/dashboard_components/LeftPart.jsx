@@ -11,10 +11,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../featurres/users/authSlice";
 import { toast } from "react-hot-toast";
 import OtherUser from "../common/OtherUser";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const LeftPart = () => {
   const dispatch = useDispatch();
-  const { suggestedUsers } = useSelector((state) => state.user);
+   const location = useLocation();
+   const navigate = useNavigate();
+  
+  const { suggestedUsers, profile } = useSelector((state) => state.user);
 
   const handleLogout = async () => {
     try {
@@ -28,6 +32,13 @@ const LeftPart = () => {
     }
   };
 
+  const handleNavigation = (path) => {
+    navigate(path)
+  }
+
+
+  const isActive = (path) => location.pathname === path
+
   return (
     <div className="w-[20%] hidden lg:block h-screen bg-white/80 backdrop-blur-sm border-r border-gray-100 p-6 overflow-y-auto scrollbar-hide">
       {/* Brand */}
@@ -38,14 +49,62 @@ const LeftPart = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="space-y-4">
-        <NavItem icon={<Home size={24} />} label="Home" active />
-        <NavItem icon={<Search size={24} />} label="Search" />
-        <NavItem icon={<PlusSquare size={24} />} label="Create" />
-        <NavItem icon={<Film size={24} />} label="Reels" />
-        <NavItem icon={<Heart size={24} />} label="Notifications" />
-        <NavItem icon={<User size={24} />} label="Profile" />
-      </nav>
+       <nav className="space-y-4">
+          <div
+            onClick={() => handleNavigation("/dashboard")}
+            className={`flex items-center space-x-3 cursor-pointer transition-colors p-2 rounded-lg hover:bg-purple-50 ${
+              isActive("/dashboard") ? "text-purple-600" : "text-gray-600 hover:text-purple-600"
+            }`}
+          >
+            <Home size={24} />
+            <span className="text-lg">Home</span>
+          </div>
+          <div
+            onClick={() => handleNavigation("/search")}
+            className={`flex items-center space-x-3 cursor-pointer transition-colors p-2 rounded-lg hover:bg-purple-50 ${
+              isActive("/search") ? "text-purple-600" : "text-gray-600 hover:text-purple-600"
+            }`}
+          >
+            <Search size={24} />
+            <span className="text-lg">Search</span>
+          </div>
+          <div
+            onClick={() => handleNavigation("/create")}
+            className={`flex items-center space-x-3 cursor-pointer transition-colors p-2 rounded-lg hover:bg-purple-50 ${
+              isActive("/create") ? "text-purple-600" : "text-gray-600 hover:text-purple-600"
+            }`}
+          >
+            <PlusSquare size={24} />
+            <span className="text-lg">Create</span>
+          </div>
+          <div
+            onClick={() => handleNavigation("/reels")}
+            className={`flex items-center space-x-3 cursor-pointer transition-colors p-2 rounded-lg hover:bg-purple-50 ${
+              isActive("/reels") ? "text-purple-600" : "text-gray-600 hover:text-purple-600"
+            }`}
+          >
+            <Film size={24} />
+            <span className="text-lg">Reels</span>
+          </div>
+          <div
+            onClick={() => handleNavigation("/notifications")}
+            className={`flex items-center space-x-3 cursor-pointer transition-colors p-2 rounded-lg hover:bg-purple-50 ${
+              isActive("/notifications") ? "text-purple-600" : "text-gray-600 hover:text-purple-600"
+            }`}
+          >
+            <Heart size={24} />
+            <span className="text-lg">Notifications</span>
+          </div>  
+          <div
+            onClick={() => handleNavigation(`/profile/${profile?.userName}`)}
+            className={`flex items-center space-x-3 cursor-pointer transition-colors p-2 rounded-lg hover:bg-purple-50 ${
+              location.pathname.includes("/profile/") ? "text-purple-600" : "text-gray-600 hover:text-purple-600"
+            }`}
+          >
+            <User size={24} />
+            <span className="text-lg">Profile</span>
+          </div>
+        </nav>
 
       {/* Suggested Users */}
       <div className="mt-10">

@@ -48,48 +48,68 @@ export const suggestedUsers = async (req, res) => {
 };
 
 
-export const editProfile = async(req, res) => {
-    try {
-        const {name , userName, bio, gender, location, website} = req.body;
-        const user = req.user;
-        if(!user) {
-            return res.status(400).json({
-                message : "user not found"
-            })
-        }
-        const userWithAlreadyExistUserName = await User.findOne({userName}).select("-password");
-        if(userWithAlreadyExistUserName && userWithAlreadyExistUserName._id !== user._id) {
-            return res.status(400).json({
-                message : "user with this name already exist!"
-            })
-        }
+import fs from "fs";
 
-        let profileImage = "";
-        if(req.file) {
-            profileImage = await uploadOnCloudinary(req.file.path);
-        }
-        user.name = name;
-        user.userName = userName;
-        user.profilePicture = profileImage
-        user.bio = bio;
-        user.gender = gender;
-        user.location = location;
-        user.website = website;
 
-        await user.save();
-
-        return res.status(200).json({
-            message : "user updated successfully",
-            user
-        })
-
-    } catch(error) {
-        return res.status(400).json({
-            message : "Internal server error",
-            error
-        })
+export const editProfile = async (req, res) => {
+  try {
+    const { name, userName, bio, gender, location, website } = req.body;
+    
+    const user = req.user; 
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized: user not found" });
     }
-}
+
+    
+    if (userName) {
+      const existingUser = await User.findOne({ userName }).select("_id");
+      if (existingUser && existingUser._id.toString() !== user._id.toString()) {
+        return res.status(400).json({ message: "Username already in use" });
+      }
+    }
+
+    let profileImage = user.profilePicture;
+
+    if (req.file) {
+      try {
+        profileImage = await uploadOnCloudinary(req.file.path);
+      } catch (cloudErr) {
+        console.error("Cloudinary upload failed:", cloudErr);
+        return res.status(500).json({ message: "Image upload failed" });
+      }
+    }
+
+    
+    user.name = name || user.name;
+    user.userName = userName || user.userName;
+    user.profilePicture = profileImage || user.profilePicture;
+    user.bio = bio ?? user.bio;
+    user.gender = gender ?? user.gender;
+    user.location = location ?? user.location;
+    user.website = website ?? user.website;
+
+    await user.save();
+
+    return res.status(200).json({
+      message: "Profile updated successfully",
+      user: {
+        _id: user._id,
+        name: user.name,
+        userName: user.userName,
+        profilePicture: user.profilePicture,
+        bio: user.bio,
+        gender: user.gender,
+        location: user.location,
+        website: user.website,
+        isVerified: user.isVerified,
+      },
+    });
+  } catch (error) {
+    console.error("Edit Profile Error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 
 export const getProfileByParams = async (req, res) => {
     try {

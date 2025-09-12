@@ -5,6 +5,8 @@ import Signup from "../pages/Signup";
 import ProtectedRoute from "./ProtectedRoutes";
 import ForgotPassword from "../pages/ForgotPassword";
 import Profile from "../pages/Profile";
+import EditProfile from "../pages/EditProfile";
+import SearchPage from "../pages/SearchPage";
 
 const AppRoutes = ({ isAuthenticated }) => {
   return (
@@ -29,6 +31,22 @@ const AppRoutes = ({ isAuthenticated }) => {
         element={
           <ProtectedRoute>
             <Profile />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/editProfile" 
+        element={
+          <ProtectedRoute>
+            <EditProfile />
+          </ProtectedRoute>
+        } 
+      />
+       <Route 
+        path="/search" 
+        element={
+          <ProtectedRoute>
+            <SearchPage />
           </ProtectedRoute>
         } 
       />

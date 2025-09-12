@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken"
 
 
 const userSchema = new mongoose.Schema({
-    name:{
+    name: {
         type: String,
         required: true,
     },
@@ -19,85 +19,93 @@ const userSchema = new mongoose.Schema({
     phone: {
         type: String,
         required: true,
-        unique: true,   
+        unique: true,
     },
-    email : {
+    email: {
         type: String,
         required: true,
         unique: true,
         lowercase: true,
-        trim : true
+        trim: true
     },
-    password : {
+    password: {
         type: String,
         required: true,
     },
-    followers : [
-        {type: mongoose.Schema.Types.ObjectId,
+    followers: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
             ref: "User"
         }
     ],
-     following : [
-        {type: mongoose.Schema.Types.ObjectId,
+    following: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
             ref: "User"
         }
-     ],
-    posts : [
-        {type: mongoose.Schema.Types.ObjectId,
+    ],
+    posts: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
             ref: "Post"
         }
     ],
-    savedPosts : [
-        {type: mongoose.Schema.Types.ObjectId,
+    savedPosts: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
             ref: "Post"
         }
     ],
-    profilePicture : {
+    profilePicture: {
         type: String,
         default: ""
     },
-    bio : {
+    bio: {
         type: String,
         default: ""
     },
-    gender : {
-        type : String,
-        enum: ["male", "female"]
+    gender: {
+        type: String,
+        enum: ["male", "female", "other", "prefer-not-to-say"],
+        default: null,   
     },
-    website : {
+
+    website: {
         type: String,
         default: ""
     },
-    location : {
+    location: {
         type: String,
         default: ""
     },
-    reels : [
-        {type: mongoose.Schema.Types.ObjectId,
+    reels: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
             ref: "Reel"
-        }   
-    ],
-    stories : [
-        {type: mongoose.Schema.Types.ObjectId,
-            ref: "Story"    
         }
     ],
-    resetOtp : {
+    stories: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Story"
+        }
+    ],
+    resetOtp: {
         type: String
     },
-    otpExpire : {
-        type : Date
+    otpExpire: {
+        type: Date
     },
-    isVerified : {
+    isVerified: {
         type: Boolean,
         default: false
     },
 
-}, {timestamps: true});
+}, { timestamps: true });
 
 
-userSchema.pre('save', async function(next) {
-    if(!this.isModified('password')) {
+userSchema.pre('save', async function (next) {
+    if (!this.isModified('password')) {
         return next();
     }
     this.password = await bcrypt.hash(this.password, 10);
@@ -105,24 +113,24 @@ userSchema.pre('save', async function(next) {
 });
 
 
-userSchema.methods.comparePassword = async function(password) {
+userSchema.methods.comparePassword = async function (password) {
     return await bcrypt.compare(password, this.password);
 }
 
 // generating token
-userSchema.methods.generateToken =  function() {
+userSchema.methods.generateToken = function () {
     const payload = {
-    _id: this._id,
-    userName: this.userName,
-    email: this.email,
+        _id: this._id,
+        userName: this.userName,
+        email: this.email,
     }
-    const token =  jwt.sign(payload, process.env.JWT_SECRET, {expiresIn: '10m'});
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '10m' });
     return token;
-}    
+}
 
 // generate long lived refresh token 
 userSchema.methods.generateRefreshToken = function () {
-    const refreshToken = jwt.sign({_id : this._id}, process.env.JWT_REFRESH_SECRET, {expiresIn: "30d"});
+    const refreshToken = jwt.sign({ _id: this._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: "30d" });
     return refreshToken;
 }
 
@@ -131,7 +139,7 @@ userSchema.statics.findByRefreshToken = function (token) {
     try {
         const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
         return this.findById(decoded._id)
-    } catch(error) {
+    } catch (error) {
         return null;
     }
 }

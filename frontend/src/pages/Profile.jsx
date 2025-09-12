@@ -1,24 +1,31 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 import { Grid, Settings, Bookmark, Tag, Heart, MessageCircle, CheckCircle } from "lucide-react"
 import { getProfileByParams, clearProfileByParams } from "../featurres/users/userSlice.jsx"
 import { useSelector, useDispatch } from "react-redux"
 
 const Profile = () => {
-  const { userName } = useParams()
-  const dispatch = useDispatch()
+  const { userName } = useParams();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("posts")
 
+
   const { profileByParams, loading, error } = useSelector((state) => state.user)
+  const {profile} = useSelector(state => state.user);
+
+  console.log("loggedin users profile",profile)
+
+  
 
   useEffect(() => {
     if (userName) {
       dispatch(getProfileByParams(userName))
     }
     return () => {
-      dispatch(clearProfileByParams()) // clear when leaving page
+      dispatch(clearProfileByParams()) 
     }
   }, [userName, dispatch])
 
@@ -51,7 +58,8 @@ const Profile = () => {
     website: "",
   }
 
-  const profileData = profileByParams || defaultUser
+  const profileData = profileByParams || defaultUser;
+  // console.log("profiledata ",profileData);
 
   const formatCount = (count) => {
     if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`
@@ -97,14 +105,24 @@ const Profile = () => {
                   <h1 className="text-2xl font-semibold text-gray-800">{profileData.userName}</h1>
                   {profileData.isVerified && <CheckCircle className="w-6 h-6 text-blue-500 fill-current" />}
                 </div>
+                {profileByParams.userName === profile.userName ? (
                 <div className="flex gap-3">
-                  <button className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-200">
+                  <button 
+                  onClick={() => navigate('/editProfile')}
+                  className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-200">
                     Edit Profile
                   </button>
-                  <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                    <Settings className="w-5 h-5 text-gray-600" />
-                  </button>
+                
                 </div>
+                ) : 
+                <div className="flex gap-3">
+                  <button className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-200">
+                    Follow
+                  </button>
+                  
+                </div>
+                }
+                
               </div>
 
               {/* Stats */}

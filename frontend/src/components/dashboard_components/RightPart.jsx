@@ -110,7 +110,7 @@ const RightPart = () => {
         {/* Account Info */}
         <div className="flex items-center space-x-4">
           <img
-            src={dp || "/placeholder.svg"}
+            src={profile?.profilePicture || "/placeholder.svg"}
             alt="Profile"
             className="w-14 h-14 rounded-full border-2 border-purple-200"
           />
@@ -129,4 +129,4 @@ const RightPart = () => {
   )
 }
 
-export default RightPart
+export default RightPart;
