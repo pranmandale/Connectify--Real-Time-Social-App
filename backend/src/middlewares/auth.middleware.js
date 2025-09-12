@@ -21,6 +21,7 @@ export const authenticate = async (req, res, next) => {
             return res.status(404).json({ error: "User not found" });
         }
 
+        console.log("middleware user ",user._id)
         
         req.user = user;
         next();

@@ -109,7 +109,7 @@ const Profile = () => {
                 <div className="flex gap-3">
                   <button 
                   onClick={() => navigate('/editProfile')}
-                  className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-200">
+                  className="px-2 py-2 cursor-pointer bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-200">
                     Edit Profile
                   </button>
                 

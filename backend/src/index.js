@@ -28,6 +28,16 @@ import userRoute from './routes/user.route.js';
 app.use('/api/v1/user', userRoute);
 
 
+// import post routes 
+import postRoute from './routes/post.route.js';
+app.use('/api/v1/post', postRoute);
+
+
+// import like routes
+import likeRoute from './routes/like.route.js';
+app.use('/api/v1/like', likeRoute)
+
+
 app.listen(PORT, () => {
   connectDB();
   console.log(`Server is running on port ${PORT}`);

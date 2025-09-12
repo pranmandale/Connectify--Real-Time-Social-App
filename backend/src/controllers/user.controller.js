@@ -4,7 +4,7 @@ import uploadOnCloudinary from "../utils/cloudinary.js"
 export const fetechProfile = async (req, res) => {
     try {
         const user = req.user; 
-
+      await user.populate("posts");
         if (!user) {
             return res.status(404).json({ message: "User does not exist" });
         }
@@ -12,6 +12,7 @@ export const fetechProfile = async (req, res) => {
         // Remove password before sending
         const { password, ...userData } = user.toObject();
 
+        
         return res.status(200).json({
             message: "User fetched successfully",
             user: userData,

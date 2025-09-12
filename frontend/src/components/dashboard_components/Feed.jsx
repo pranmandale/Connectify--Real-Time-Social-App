@@ -12,11 +12,15 @@ import {
 } from "lucide-react"
 import StoryCard from "../common/StoryCard"
 import dp from "../../assets/s1.png"
+import { useSelector } from "react-redux"
 
 
 const Feed = () => {
+
+  const {profile} = useSelector(state => state.user);
+  
   const stories = [
-    { id: 1, name: "Your Story", avatar: dp, isOwn: true },
+    { id: 1, name: "Your Story", avatar: profile.profilePicture, isOwn: true },
     { id: 2, name: "john_doe", avatar: "/diverse-user-avatars.png", isOwn: false },
     { id: 3, name: "jane_smith", avatar: "/diverse-user-avatars.png", isOwn: false },
     { id: 4, name: "mike_wilson", avatar: "/diverse-user-avatars.png", isOwn: false },
