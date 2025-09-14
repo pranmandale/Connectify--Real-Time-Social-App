@@ -4,6 +4,7 @@ import AppRoutes from "./routes/index"
 import Loader from './components/Loader';
 import { refreshToken } from './featurres/users/authSlice';
 import { fetchProfile, getSuggestedUsers } from './featurres/users/userSlice';
+import { getAllPostsOfUser, getPostById } from './featurres/post/postSlice';
 
 
 const App = () => {
@@ -25,7 +26,8 @@ useEffect(() => {
 useEffect(() => {
     if (isAuthenticated) {
       dispatch(fetchProfile());
-      dispatch(getSuggestedUsers())
+      dispatch(getSuggestedUsers());
+      
     }
   }, [dispatch, isAuthenticated]);
 

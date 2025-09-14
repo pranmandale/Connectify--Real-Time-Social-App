@@ -1,33 +1,41 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
-import { useNavigate, useParams } from "react-router-dom"
-import { Grid, Settings, Bookmark, Tag, Heart, MessageCircle, CheckCircle } from "lucide-react"
-import { getProfileByParams, clearProfileByParams } from "../featurres/users/userSlice.jsx"
+import { useParams, useNavigate } from "react-router-dom"
+import { Grid, Settings, Bookmark, Tag, Heart, MessageCircle, CheckCircle, Plus } from "lucide-react"
 import { useSelector, useDispatch } from "react-redux"
-
+import { getProfileByParams, clearProfileByParams } from "../featurres/users/userSlice.jsx"
+import { getAllPostsOfUser } from "../featurres/post/postSlice.jsx"
+import OpenPostModal from "../modals/OpenPostModal"
+import UploadPostModal from "../modals/UploadPostModal"
+import {toast} from "react-hot-toast"
+ 
 const Profile = () => {
-  const { userName } = useParams();
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const { userName } = useParams()
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState("posts")
+  const [selectedPost, setSelectedPost] = useState(null)
+  const [showUploadModal, setShowUploadModal] = useState(false)
 
-
-  const { profileByParams, loading, error } = useSelector((state) => state.user)
-  const {profile} = useSelector(state => state.user);
-
-  console.log("loggedin users profile",profile)
-
-  
+  const { profileByParams, loading, error, profile } = useSelector((state) => state.user)
+  const { posts } = useSelector((state) => state.post)
 
   useEffect(() => {
     if (userName) {
       dispatch(getProfileByParams(userName))
     }
     return () => {
-      dispatch(clearProfileByParams()) 
+      dispatch(clearProfileByParams())
     }
   }, [userName, dispatch])
+
+  useEffect(() => {
+    if (profileByParams?.userName === profile?.userName) {
+      dispatch(getAllPostsOfUser())
+    }
+  }, [profileByParams, profile, dispatch])
 
   const defaultUser = {
     name: "John Doe",
@@ -58,14 +66,16 @@ const Profile = () => {
     website: "",
   }
 
-  const profileData = profileByParams || defaultUser;
-  // console.log("profiledata ",profileData);
+  const profileData = profileByParams || defaultUser
+  const displayPosts = profileByParams?.userName === profile?.userName ? posts : profileData.posts
 
   const formatCount = (count) => {
     if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`
     if (count >= 1000) return `${(count / 1000).toFixed(1)}K`
     return count.toString()
   }
+
+  const isOwnProfile = profile && profileData && profile.userName === profileData.userName
 
   if (loading)
     return (
@@ -105,30 +115,38 @@ const Profile = () => {
                   <h1 className="text-2xl font-semibold text-gray-800">{profileData.userName}</h1>
                   {profileData.isVerified && <CheckCircle className="w-6 h-6 text-blue-500 fill-current" />}
                 </div>
-                {profileByParams.userName === profile.userName ? (
                 <div className="flex gap-3">
-                  <button 
-                  onClick={() => navigate('/editProfile')}
-                  className="px-2 py-2 cursor-pointer bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-200">
-                    Edit Profile
-                  </button>
-                
+                  {isOwnProfile ? (
+                    <>
+                      <button
+                        onClick={() => navigate("/editProfile")}
+                        className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-200"
+                      >
+                        Edit Profile
+                      </button>
+                      <button
+                        onClick={() => setShowUploadModal(true)}
+                        className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-purple-600 transition-all duration-200 flex items-center gap-2"
+                      >
+                        <Plus className="w-4 h-4" />
+                        New Post
+                      </button>
+                      <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        <Settings className="w-5 h-5 text-gray-600" />
+                      </button>
+                    </>
+                  ) : (
+                    <button className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-purple-600 transition-all duration-200">
+                      Follow
+                    </button>
+                  )}
                 </div>
-                ) : 
-                <div className="flex gap-3">
-                  <button className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-200">
-                    Follow
-                  </button>
-                  
-                </div>
-                }
-                
               </div>
 
               {/* Stats */}
               <div className="flex justify-center md:justify-start gap-8 mb-4">
                 <div className="text-center">
-                  <div className="font-semibold text-gray-800">{formatCount(profileData.posts?.length || 0)}</div>
+                  <div className="font-semibold text-gray-800">{formatCount(displayPosts?.length || 0)}</div>
                   <div className="text-sm text-gray-600">posts</div>
                 </div>
                 <div className="text-center">
@@ -185,7 +203,7 @@ const Profile = () => {
           <div className="flex">
             <button
               onClick={() => setActiveTab("posts")}
-              className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-medium transition-colors ${
+              className={`${isOwnProfile ? "flex-1" : "w-full"} flex items-center justify-center gap-2 py-4 text-sm font-medium transition-colors ${
                 activeTab === "posts"
                   ? "text-purple-600 border-b-2 border-purple-600"
                   : "text-gray-500 hover:text-gray-700"
@@ -194,28 +212,32 @@ const Profile = () => {
               <Grid className="w-4 h-4" />
               POSTS
             </button>
-            <button
-              onClick={() => setActiveTab("saved")}
-              className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-medium transition-colors ${
-                activeTab === "saved"
-                  ? "text-purple-600 border-b-2 border-purple-600"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              <Bookmark className="w-4 h-4" />
-              SAVED
-            </button>
-            <button
-              onClick={() => setActiveTab("tagged")}
-              className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-medium transition-colors ${
-                activeTab === "tagged"
-                  ? "text-purple-600 border-b-2 border-purple-600"
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              <Tag className="w-4 h-4" />
-              TAGGED
-            </button>
+            {isOwnProfile && (
+              <>
+                <button
+                  onClick={() => setActiveTab("saved")}
+                  className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-medium transition-colors ${
+                    activeTab === "saved"
+                      ? "text-purple-600 border-b-2 border-purple-600"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  <Bookmark className="w-4 h-4" />
+                  SAVED
+                </button>
+                <button
+                  onClick={() => setActiveTab("tagged")}
+                  className={`flex-1 flex items-center justify-center gap-2 py-4 text-sm font-medium transition-colors ${
+                    activeTab === "tagged"
+                      ? "text-purple-600 border-b-2 border-purple-600"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  <Tag className="w-4 h-4" />
+                  TAGGED
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -223,63 +245,113 @@ const Profile = () => {
         <div className="bg-white/80 backdrop-blur-sm rounded-b-2xl shadow-lg border border-white/20 border-t-0">
           {activeTab === "posts" && (
             <div className="grid grid-cols-3 gap-1 p-1">
-              {profileData.posts && profileData.posts.length > 0 ? (
-                profileData.posts.map((post) => (
-                  <div key={post.id} className="relative aspect-square group cursor-pointer">
-                    <img
-                      src={post.image || "/placeholder.svg"}
-                      alt={`Post ${post.id}`}
-                      className="w-full h-full object-cover rounded-lg"
-                    />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center">
-                      <div className="flex items-center gap-4 text-white">
-                        <div className="flex items-center gap-1">
-                          <Heart className="w-5 h-5 fill-current" />
-                          <span className="font-medium">{post.likes || 0}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <MessageCircle className="w-5 h-5 fill-current" />
-                          <span className="font-medium">{post.comments || 0}</span>
+              {displayPosts && displayPosts.length > 0 ? (
+                displayPosts.map((post) => {
+                  const mediaSrc = post.mediaUrl?.[0] || post.image || "/placeholder.svg"
+                  console.log("[v0] Post data:", post)
+                  console.log("[v0] Media source:", mediaSrc)
+
+                  return (
+                    <div
+                      key={post._id || post.id}
+                      className="relative aspect-square group cursor-pointer"
+                      onClick={() => setSelectedPost(post)}
+                    >
+                      {post.mediaType === "video" ? (
+                        <video
+                          src={mediaSrc}
+                          className="w-full h-full object-cover rounded-lg"
+                          muted
+                          loop
+                          playsInline
+                          preload="metadata"
+                          onError={(e) => {
+                            console.log("[v0] Video error in grid:", e)
+                            console.log("[v0] Video src:", mediaSrc)
+                          }}
+                          onLoadStart={() => console.log("[v0] Video loading in grid:", mediaSrc)}
+                        >
+                          <source src={mediaSrc} type="video/mp4" />
+                          Your browser does not support the video tag.
+                        </video>
+                      ) : (
+                        <img
+                          src={mediaSrc || "/placeholder.svg"}
+                          alt={post.caption || "Post"}
+                          className="w-full h-full object-cover rounded-lg"
+                          onError={(e) => {
+                            console.log("[v0] Image error:", e)
+                            e.target.src = "/placeholder.svg"
+                          }}
+                        />
+                      )}
+
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center">
+                        <div className="flex items-center gap-4 text-white">
+                          <div className="flex items-center gap-1">
+                            <Heart className="w-5 h-5 fill-current" />
+                            <span className="font-medium">{post.likes?.length || post.likes || 0}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <MessageCircle className="w-5 h-5 fill-current" />
+                            <span className="font-medium">{post.comments?.length || post.comments || 0}</span>
+                          </div>
                         </div>
                       </div>
+
+                      {post.mediaType === "video" && (
+                        <div className="absolute top-2 right-2 bg-black/70 text-white p-1 rounded-md">🎥</div>
+                      )}
+
+                      {post.mediaUrl?.length > 1 && (
+                        <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 text-xs rounded-md">
+                          📷 {post.mediaUrl.length}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))
+                  )
+                })
               ) : (
                 <div className="col-span-3 p-12 text-center">
                   <Grid className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-600 mb-2">No posts yet</h3>
                   <p className="text-gray-500">Share your first post to get started</p>
+                  {isOwnProfile && (
+                    <button
+                      onClick={() => setShowUploadModal(true)}
+                      className="mt-4 px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-200"
+                    >
+                      Upload Your First Post
+                    </button>
+                  )}
                 </div>
               )}
             </div>
           )}
 
-          {activeTab === "saved" && (
-            <div className="p-12 text-center">
+          {isOwnProfile && activeTab === "saved" && (
+            <div className="grid grid-cols-3 gap-1 p-1">
               {profileData.savedPosts && profileData.savedPosts.length > 0 ? (
-                <div className="grid grid-cols-3 gap-1">
-                  {profileData.savedPosts.map((post) => (
-                    <div key={post.id} className="relative aspect-square group cursor-pointer">
-                      <img
-                        src={post.image || "/placeholder.svg"}
-                        alt={`Saved Post ${post.id}`}
-                        className="w-full h-full object-cover rounded-lg"
-                      />
-                    </div>
-                  ))}
-                </div>
+                profileData.savedPosts.map((post) => (
+                  <div key={post.id} className="relative aspect-square group cursor-pointer">
+                    <img
+                      src={post.image || "/placeholder.svg"}
+                      alt={`Saved Post ${post.id}`}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                  </div>
+                ))
               ) : (
-                <>
+                <div className="col-span-3 p-12 text-center">
                   <Bookmark className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-600 mb-2">No saved posts yet</h3>
                   <p className="text-gray-500">Save posts you want to see again</p>
-                </>
+                </div>
               )}
             </div>
           )}
 
-          {activeTab === "tagged" && (
+          {isOwnProfile && activeTab === "tagged" && (
             <div className="p-12 text-center">
               <Tag className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-600 mb-2">No tagged posts</h3>
@@ -288,6 +360,16 @@ const Profile = () => {
           )}
         </div>
       </div>
+
+      <OpenPostModal
+        isOpen={!!selectedPost}
+        onClose={() => setSelectedPost(null)}
+        post={selectedPost}
+        isOwnProfile={isOwnProfile}
+        profileData={profileData}
+      />
+
+      <UploadPostModal isOpen={showUploadModal} onClose={() => setShowUploadModal(false)} />
     </div>
   )
 }

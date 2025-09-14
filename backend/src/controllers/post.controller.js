@@ -151,3 +151,21 @@ export const deletePost = async (req, res) => {
         return res.status(500).json({ message: "Internal server error", error });
     }
 };
+
+// get all suggested posts
+export const getAllSuggestedPosts = async (req, res) => {
+    try {
+        const posts = await Post.find().populate(
+            "author",
+            "name userName profileImage"
+        );
+
+        return res.status(200).json({
+            message: "Posts fetched successfully",
+            posts,
+        });
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error", error });
+    }
+};
+

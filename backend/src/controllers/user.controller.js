@@ -49,8 +49,6 @@ export const suggestedUsers = async (req, res) => {
 };
 
 
-import fs from "fs";
-
 
 export const editProfile = async (req, res) => {
   try {
@@ -115,8 +113,7 @@ export const editProfile = async (req, res) => {
 export const getProfileByParams = async (req, res) => {
     try {
         const userName = req.params.userName;
-        console.log(userName)
-        const user = await User.findOne({userName}).select("-password");
+        const user = await User.findOne({userName}).select("-password").populate("posts");
 
         if(!user) {
             return res.status(400).json({
