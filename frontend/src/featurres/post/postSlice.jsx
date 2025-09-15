@@ -20,7 +20,7 @@ export const getAllPostsOfUser = createAsyncThunk("posts/getAll", async (_, { re
 })
 
 // 🔹 Fetch single post by ID
-export const getPostById = createAsyncThunk("posts/getById", async (postId, { rejectWithValue }) => {
+export const getPostById = createAsyncThunk("/postposts/getById", async (postId, { rejectWithValue }) => {
   try {
     const res = await axiosNodeClient.get(`/post/posts/${postId}`)
     return res.data // backend sends { message, post }
@@ -45,7 +45,7 @@ export const uploadPost = createAsyncThunk("post/post/upload", async (formData, 
 // 🔹 Update a post
 export const updatePost = createAsyncThunk("posts/update", async ({ postId, formData }, { rejectWithValue }) => {
   try {
-    const res = await axiosNodeClient.put(`/post/posts/${postId}`, formData, {
+    const res = await axiosNodeClient.put(`/post/post/posts/${postId}`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     })
     return res.data

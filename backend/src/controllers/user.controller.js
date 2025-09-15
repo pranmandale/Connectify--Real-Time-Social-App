@@ -49,7 +49,6 @@ export const suggestedUsers = async (req, res) => {
 };
 
 
-
 export const editProfile = async (req, res) => {
   try {
     const { name, userName, bio, gender, location, website } = req.body;

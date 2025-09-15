@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -17,13 +16,16 @@ import {
 } from "lucide-react"
 import { useSelector, useDispatch } from "react-redux"
 import { deletePost, updatePost } from "../featurres/post/postSlice.jsx"
-import {toast} from "react-hot-toast"
+import {
+  toggleLikePost,
+  fetchPostLikes,
+} from "../featurres/like/likeSlice.js"
+import { toast } from "react-hot-toast"
 
 const OpenPostModal = ({ isOpen, onClose, post, isOwnProfile, profileData }) => {
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0)
-  const [isLiked, setIsLiked] = useState(false)
+  const [likes, setLikes] = useState({ likedByUser: false, likeCount: 0 })
   const [isSaved, setIsSaved] = useState(false)
-  const [showComments, setShowComments] = useState(true)
   const [newComment, setNewComment] = useState("")
   const [isEditing, setIsEditing] = useState(false)
   const [editCaption, setEditCaption] = useState("")
@@ -31,20 +33,22 @@ const OpenPostModal = ({ isOpen, onClose, post, isOwnProfile, profileData }) => 
   const { profile } = useSelector((state) => state.user)
   const dispatch = useDispatch()
 
+  // Load likes state when modal opens
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden"
+    if (isOpen && post?._id && profile?._id) {
       setCurrentMediaIndex(0)
       setEditCaption(post?.caption || "")
-    } else {
-      document.body.style.overflow = "unset"
-      setIsEditing(false)
-    }
 
-    return () => {
-      document.body.style.overflow = "unset"
+      dispatch(fetchPostLikes({ postId: post._id, currentUserId: profile._id })).then((res) => {
+        if (res.payload) {
+          setLikes({
+            likedByUser: res.payload.users.some((u) => u._id === profile._id),
+            likeCount: res.payload.totalLikes || 0,
+          })
+        }
+      })
     }
-  }, [isOpen, post])
+  }, [isOpen, post, profile, dispatch])
 
   if (!isOpen || !post) return null
 
@@ -59,8 +63,17 @@ const OpenPostModal = ({ isOpen, onClose, post, isOwnProfile, profileData }) => 
     setCurrentMediaIndex((prev) => (prev === mediaItems.length - 1 ? 0 : prev + 1))
   }
 
-  const handleLike = () => {
-    setIsLiked(!isLiked)
+  const handleToggleLike = async () => {
+    try {
+      await dispatch(toggleLikePost(post._id)).unwrap()
+      setLikes((prev) => ({
+        likedByUser: !prev.likedByUser,
+        likeCount: prev.likedByUser ? prev.likeCount - 1 : prev.likeCount + 1,
+      }))
+    } catch (error) {
+      console.error("[v0] Failed to toggle like:", error)
+      toast.error("Failed to update like. Please try again.")
+    }
   }
 
   const handleSave = () => {
@@ -70,7 +83,7 @@ const OpenPostModal = ({ isOpen, onClose, post, isOwnProfile, profileData }) => 
   const handleCommentSubmit = (e) => {
     e.preventDefault()
     if (newComment.trim()) {
-      // Add comment logic here
+      // Add comment logic here (dispatch to backend)
       setNewComment("")
     }
   }
@@ -84,18 +97,13 @@ const OpenPostModal = ({ isOpen, onClose, post, isOwnProfile, profileData }) => 
       const formData = new FormData()
       formData.append("caption", editCaption)
 
-      await dispatch(
-        updatePost({
-          postId: post._id,
-          formData,
-        }),
-      ).unwrap()
+      await dispatch(updatePost({ postId: post._id, formData })).unwrap()
 
       setIsEditing(false)
-      console.log("[v0] Post updated successfully")
+      toast.success("Post updated successfully")
     } catch (error) {
       console.error("[v0] Failed to update post:", error)
-      alert("Failed to update post. Please try again.")
+      toast.error("Failed to update post. Please try again.")
     }
   }
 
@@ -105,26 +113,22 @@ const OpenPostModal = ({ isOpen, onClose, post, isOwnProfile, profileData }) => 
   }
 
   const handleDeletePost = async () => {
-  if (window.confirm("Are you sure you want to delete this post? This action cannot be undone.")) {
-    try {
-      await toast.promise(
-        dispatch(deletePost(post._id)).unwrap(),
-        {
+    if (window.confirm("Are you sure you want to delete this post? This action cannot be undone.")) {
+      try {
+        await toast.promise(dispatch(deletePost(post._id)).unwrap(), {
           loading: "Deleting post...",
           success: "Post deleted successfully",
           error: "Failed to delete post. Please try again.",
-        }
-      )
-      onClose() // Close modal after successful deletion
-    } catch (error) {
-      console.error("[v0] Failed to delete post:", error)
+        })
+        onClose()
+      } catch (error) {
+        console.error("[v0] Failed to delete post:", error)
+      }
     }
   }
-}
-
 
   const formatTimeAgo = (date) => {
-    // Simple time ago formatting
+    // Replace with a real formatter (dayjs, date-fns, etc.)
     return "2h"
   }
 
@@ -144,7 +148,7 @@ const OpenPostModal = ({ isOpen, onClose, post, isOwnProfile, profileData }) => 
       <div className="relative w-full h-full max-w-6xl max-h-[90vh] bg-white rounded-lg overflow-hidden flex">
         {/* Media Section */}
         <div className="relative flex-1 bg-black flex items-center justify-center">
-          {/* Navigation arrows for multiple media */}
+          {/* Navigation arrows */}
           {hasMultipleMedia && currentMediaIndex > 0 && (
             <button
               onClick={handlePrevMedia}
@@ -153,7 +157,6 @@ const OpenPostModal = ({ isOpen, onClose, post, isOwnProfile, profileData }) => 
               <ChevronLeft className="w-5 h-5" />
             </button>
           )}
-
           {hasMultipleMedia && currentMediaIndex < mediaItems.length - 1 && (
             <button
               onClick={handleNextMedia}
@@ -179,7 +182,7 @@ const OpenPostModal = ({ isOpen, onClose, post, isOwnProfile, profileData }) => 
           <div className="w-full h-full flex items-center justify-center">
             {post.mediaType === "video" ? (
               <video
-                key={`${post._id || post.id}-${currentMediaIndex}`} // Better key for re-rendering
+                key={`${post._id || post.id}-${currentMediaIndex}`}
                 src={mediaItems[currentMediaIndex]}
                 className="max-w-full max-h-full object-contain"
                 controls
@@ -187,27 +190,13 @@ const OpenPostModal = ({ isOpen, onClose, post, isOwnProfile, profileData }) => 
                 muted
                 playsInline
                 preload="metadata"
-                onError={(e) => {
-                  console.log("[v0] Video error in modal:", e)
-                  console.log("[v0] Video src:", mediaItems[currentMediaIndex])
-                  console.log("[v0] Video element:", e.target)
-                }}
-                onLoadStart={() => console.log("[v0] Video loading in modal:", mediaItems[currentMediaIndex])}
-                onCanPlay={() => console.log("[v0] Video can play in modal")}
-                onLoadedData={() => console.log("[v0] Video loaded data in modal")}
-              >
-                <source src={mediaItems[currentMediaIndex]} type="video/mp4" />
-                <source src={mediaItems[currentMediaIndex]} type="video/webm" />
-                <source src={mediaItems[currentMediaIndex]} type="video/ogg" />
-                Your browser does not support the video tag.
-              </video>
+              />
             ) : (
               <img
                 src={mediaItems[currentMediaIndex] || "/placeholder.svg"}
                 alt={post.caption || "Post"}
                 className="max-w-full max-h-full object-contain"
                 onError={(e) => {
-                  console.log("[v0] Image error:", e)
                   e.target.src = "/placeholder.svg"
                 }}
               />
@@ -318,10 +307,6 @@ const OpenPostModal = ({ isOpen, onClose, post, isOwnProfile, profileData }) => 
                   <div className="flex-1">
                     <span className="font-semibold text-sm mr-2">{comment.userName}</span>
                     <span className="text-sm">{comment.text}</span>
-                    <div className="flex items-center gap-4 mt-1">
-                      <span className="text-xs text-gray-500">{formatTimeAgo(comment.createdAt)}</span>
-                      <button className="text-xs text-gray-500 font-medium hover:text-gray-700">Reply</button>
-                    </div>
                   </div>
                   <button className="p-1 hover:bg-gray-100 rounded-full">
                     <Heart className="w-3 h-3 text-gray-400" />
@@ -341,8 +326,10 @@ const OpenPostModal = ({ isOpen, onClose, post, isOwnProfile, profileData }) => 
           <div className="border-t border-gray-200 p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-4">
-                <button onClick={handleLike} className="hover:scale-110 transition-transform">
-                  <Heart className={`w-6 h-6 ${isLiked ? "fill-red-500 text-red-500" : "text-gray-700"}`} />
+                <button onClick={handleToggleLike} className="hover:scale-110 transition-transform">
+                  <Heart
+                    className={`w-6 h-6 ${likes.likedByUser ? "fill-red-500 text-red-500" : "text-gray-700"}`}
+                  />
                 </button>
                 <button className="hover:scale-110 transition-transform">
                   <MessageCircle className="w-6 h-6 text-gray-700" />
@@ -360,9 +347,7 @@ const OpenPostModal = ({ isOpen, onClose, post, isOwnProfile, profileData }) => 
 
             {/* Likes count */}
             <div className="mb-3">
-              <span className="font-semibold text-sm">
-                {(post.likes?.length || post.likes || 0) + (isLiked ? 1 : 0)} likes
-              </span>
+              <span className="font-semibold text-sm">{likes.likeCount} likes</span>
             </div>
 
             {/* Add comment */}

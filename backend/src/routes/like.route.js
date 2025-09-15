@@ -1,11 +1,12 @@
 import express from "express"
 import { authenticate } from "../middlewares/auth.middleware.js";
-import { getPostLikes, likePost } from "../controllers/like.controller.js";
+import { getPostLikes, getUsersWhoLikedPost, likePost } from "../controllers/like.controller.js";
 
 const likeRoute = express.Router();
 
 
-likeRoute.post("/post/:postId/like", authenticate, likePost);
-likeRoute.get('/post/:postId/getLikes', authenticate, getPostLikes)
+likeRoute.post("/post/like/:postId", authenticate, likePost);
+likeRoute.get('/post/getLikes/:postId', authenticate, getPostLikes)
+likeRoute.get('/post/getUserWhoLiked/:postId', authenticate, getUsersWhoLikedPost);
 
 export default likeRoute;

@@ -55,7 +55,7 @@ export const getPostLikes = async (req, res) => {
     const likes = await Like.find({ 
       likeableId: postId,
       likeableType: "Post"
-    }).populate("author", "name userName profileImage");
+    }).populate("author", "name userName profilePicture");
 
     return res.status(200).json({
       message: "Likes fetched successfully",
@@ -70,3 +70,36 @@ export const getPostLikes = async (req, res) => {
 };
 
 
+// Get all users who liked a specific post
+export const getUsersWhoLikedPost = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+
+    // Check if post exists
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    // Find all likes for this post and populate the user info
+    const likes = await Like.find({ 
+      likeableId: postId,
+      likeableType: "Post"
+    }).populate("author", "name userName profilePicture"); // populate user info
+
+    // Extract users from likes
+    const users = likes.map(like => like.author);
+
+    return res.status(200).json({
+      message: "Users who liked the post fetched successfully",
+      users,
+      totalLikes: users.length
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+};

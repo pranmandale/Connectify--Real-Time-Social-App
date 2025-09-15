@@ -16,14 +16,17 @@ import StoryCard from "../common/StoryCard"
 import { useSelector, useDispatch } from "react-redux"
 import { useEffect, useState } from "react"
 import { getSuggestedPosts } from "../../featurres/post/postSlice"
+import { fetchPostLikes, toggleLikePost } from "../../featurres/like/likeSlice"
 
 const Feed = () => {
   const dispatch = useDispatch()
   const { profile } = useSelector((state) => state.user)
-  const { suggestedPosts, loading, error } = useSelector((state) => state.post)
+  const { suggestedPosts, loading, error } = useSelector((state) => state.post);
+
 
   useEffect(() => {
     dispatch(getSuggestedPosts())
+
   }, [dispatch])
 
   // Static stories
@@ -60,7 +63,7 @@ const Feed = () => {
         )}
 
         {suggestedPosts?.map((post) => (
-          <PostCard key={post._id} post={post} />
+          <PostCard key={post._id} post={post} currentUserId={profile?._id} />
         ))}
       </div>
 
@@ -79,29 +82,62 @@ const Feed = () => {
   )
 }
 
-const PostCard = ({ post }) => {
+const PostCard = ({ post, currentUserId }) => {
   const [mediaIndex, setMediaIndex] = useState(0)
   const mediaArray = Array.isArray(post.mediaUrl) ? post.mediaUrl : [post.mediaUrl].filter(Boolean)
+  // const { likedByUser, likeCount, loading } = useSelector(state => state.like);
+  const dispatch = useDispatch()
+
+
+  const [postLikes, setPostLikes] = useState({
+    likedByUser: false,
+    likeCount: post.likes?.length || 0,
+  });
 
   const handlePrev = () =>
     setMediaIndex((prev) => (prev === 0 ? mediaArray.length - 1 : prev - 1))
   const handleNext = () =>
     setMediaIndex((prev) => (prev === mediaArray.length - 1 ? 0 : prev + 1))
 
-  const currentMedia = mediaArray[mediaIndex]
+  const currentMedia = mediaArray[mediaIndex];
 
+
+  useEffect(() => {
+    // Fetch likes from backend for this post
+    if (post._id && currentUserId) {
+      dispatch(fetchPostLikes({ postId: post._id, currentUserId })).then((res) => {
+        if (res.payload) {
+          setPostLikes({
+            likedByUser: res.payload.users.some((user) => user._id === currentUserId),
+            likeCount: res.payload.totalLikes || 0,
+          });
+        }
+      });
+    }
+  }, [dispatch, post._id, currentUserId]);
+
+
+  const handleToggleLike = () => {
+    dispatch(toggleLikePost(post._id)).then(() => {
+      // Optimistically update local post like state
+      setPostLikes((prev) => ({
+        likedByUser: !prev.likedByUser,
+        likeCount: prev.likedByUser ? prev.likeCount - 1 : prev.likeCount + 1,
+      }));
+    });
+  };
   return (
     <div className="border-b border-gray-200 mb-4">
       {/* Header */}
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center space-x-3">
           <img
-            src={post.user?.profilePicture || "/placeholder.svg"}
-            alt={post.user?.username || "User"}
+            src={post.author?.profilePicture || "/placeholder.svg"}
+            alt={post.author?.username || "User"}
             className="w-10 h-10 rounded-full object-cover"
           />
           <div>
-            <p className="text-gray-800 font-medium">{post.user?.username || "Unknown"}</p>
+            <p className="text-gray-800 font-medium">{post.author?.userName || "Unknown"}</p>
             <p className="text-gray-500 text-sm">
               {new Date(post.createdAt).toLocaleDateString()}
             </p>
@@ -155,7 +191,12 @@ const PostCard = ({ post }) => {
       <div className="p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-4">
-            <Heart className="text-gray-700 cursor-pointer hover:text-red-500 transition-colors" size={24} />
+            <Heart
+              size={24}
+              className={`cursor-pointer transition-colors ${postLikes.likedByUser ? "text-red-500 fill-red-500" : "text-gray-700"}`}
+              onClick={handleToggleLike}
+            />
+
             <MessageCircle className="text-gray-700 cursor-pointer hover:text-gray-600 transition-colors" size={24} />
             <Send className="text-gray-700 cursor-pointer hover:text-gray-600 transition-colors" size={24} />
           </div>
@@ -164,7 +205,7 @@ const PostCard = ({ post }) => {
 
         {/* Likes */}
         <p className="text-gray-800 font-medium mb-2">
-          {post.likes?.length || 0} likes
+          {postLikes.likeCount || 0} likes
         </p>
 
         {/* Caption */}

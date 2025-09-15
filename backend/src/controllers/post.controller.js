@@ -49,10 +49,9 @@ export const uploadPost = async (req, res) => {
 // Get all posts of the logged-in user
 export const getAllPost = async (req, res) => {
     try {
-        const posts = await Post.find({ author: req.user._id }).populate(
-            "author",
-            "name userName profileImage"
-        );
+        const posts = await Post.find({ author: req.user._id })
+            .populate("author", "name userName profilePicture")
+            .sort({ createdAt: -1 }); // newest posts first
 
         return res.status(200).json({
             message: "Posts fetched successfully",
@@ -63,18 +62,19 @@ export const getAllPost = async (req, res) => {
     }
 };
 
+
 // View single post
 export const getPostById = async (req, res) => {
     try {
         const post = await Post.findById(req.params.postId)
-            .populate("author", "name userName profileImage")
+            .populate("author", "name userName profilePicture")
             .populate({
                 path: "likes",
-                populate: { path: "author", select: "name userName profileImage" },
+                populate: { path: "author", select: "name userName profilePicture" },
             })
             .populate({
                 path: "comments",
-                populate: { path: "author", select: "name userName profileImage" },
+                populate: { path: "author", select: "name userName profilePicture" },
             });
 
         if (!post) {
@@ -118,7 +118,7 @@ export const updatePost = async (req, res) => {
         mediaUrl: mediaUrls,
       },
       { new: true }
-    ).populate("author", "name userName profileImage");
+    ).populate("author", "name userName profilePicture");
 
     return res.status(200).json({
       message: "Post updated successfully",
@@ -155,10 +155,9 @@ export const deletePost = async (req, res) => {
 // get all suggested posts
 export const getAllSuggestedPosts = async (req, res) => {
     try {
-        const posts = await Post.find().populate(
-            "author",
-            "name userName profileImage"
-        );
+        const posts = await Post.find()
+            .populate("author", "name userName profilePicture")
+            .sort({ createdAt: -1 }); // newest posts first
 
         return res.status(200).json({
             message: "Posts fetched successfully",
@@ -168,4 +167,3 @@ export const getAllSuggestedPosts = async (req, res) => {
         return res.status(500).json({ message: "Internal server error", error });
     }
 };
-
