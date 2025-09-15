@@ -1,3 +1,8 @@
+
+
+
+
+"use client"
 import {
   Heart,
   MessageCircle,
@@ -17,16 +22,15 @@ import { useSelector, useDispatch } from "react-redux"
 import { useEffect, useState } from "react"
 import { getSuggestedPosts } from "../../featurres/post/postSlice"
 import { fetchPostLikes, toggleLikePost } from "../../featurres/like/likeSlice"
+import { toggleFollowUser } from "../../featurres/users/userSlice"
 
 const Feed = () => {
   const dispatch = useDispatch()
   const { profile } = useSelector((state) => state.user)
-  const { suggestedPosts, loading, error } = useSelector((state) => state.post);
-
+  const { suggestedPosts, loading, error } = useSelector((state) => state.post)
 
   useEffect(() => {
     dispatch(getSuggestedPosts())
-
   }, [dispatch])
 
   // Static stories
@@ -63,7 +67,7 @@ const Feed = () => {
         )}
 
         {suggestedPosts?.map((post) => (
-          <PostCard key={post._id} post={post} currentUserId={profile?._id} />
+          <PostCard key={post._id} post={post} currentUserId={profile?._id} profile={profile} />
         ))}
       </div>
 
@@ -82,50 +86,59 @@ const Feed = () => {
   )
 }
 
-const PostCard = ({ post, currentUserId }) => {
+const PostCard = ({ post, currentUserId, profile }) => {
   const [mediaIndex, setMediaIndex] = useState(0)
   const mediaArray = Array.isArray(post.mediaUrl) ? post.mediaUrl : [post.mediaUrl].filter(Boolean)
-  // const { likedByUser, likeCount, loading } = useSelector(state => state.like);
   const dispatch = useDispatch()
 
-
+  // Likes state
   const [postLikes, setPostLikes] = useState({
     likedByUser: false,
     likeCount: post.likes?.length || 0,
-  });
+  })
+
+  
+
+  const isFollowing = profile?.following?.some((id) => id.toString() === post.author?._id?.toString())
+
+  
+
 
   const handlePrev = () =>
     setMediaIndex((prev) => (prev === 0 ? mediaArray.length - 1 : prev - 1))
   const handleNext = () =>
     setMediaIndex((prev) => (prev === mediaArray.length - 1 ? 0 : prev + 1))
 
-  const currentMedia = mediaArray[mediaIndex];
+  const currentMedia = mediaArray[mediaIndex]
 
-
+  // Fetch likes on mount
   useEffect(() => {
-    // Fetch likes from backend for this post
     if (post._id && currentUserId) {
       dispatch(fetchPostLikes({ postId: post._id, currentUserId })).then((res) => {
         if (res.payload) {
           setPostLikes({
             likedByUser: res.payload.users.some((user) => user._id === currentUserId),
             likeCount: res.payload.totalLikes || 0,
-          });
+          })
         }
-      });
+      })
     }
-  }, [dispatch, post._id, currentUserId]);
-
+  }, [dispatch, post._id, currentUserId])
 
   const handleToggleLike = () => {
     dispatch(toggleLikePost(post._id)).then(() => {
-      // Optimistically update local post like state
       setPostLikes((prev) => ({
         likedByUser: !prev.likedByUser,
         likeCount: prev.likedByUser ? prev.likeCount - 1 : prev.likeCount + 1,
-      }));
-    });
-  };
+      }))
+    })
+  }
+
+  const handleFollowToggle = () => {
+    // setIsFollowing((prev) => !prev) // instant UI toggle
+    dispatch(toggleFollowUser(post.author._id))
+  }
+
   return (
     <div className="border-b border-gray-200 mb-4">
       {/* Header */}
@@ -133,7 +146,7 @@ const PostCard = ({ post, currentUserId }) => {
         <div className="flex items-center space-x-3">
           <img
             src={post.author?.profilePicture || "/placeholder.svg"}
-            alt={post.author?.username || "User"}
+            alt={post.author?.userName || "User"}
             className="w-10 h-10 rounded-full object-cover"
           />
           <div>
@@ -143,10 +156,20 @@ const PostCard = ({ post, currentUserId }) => {
             </p>
           </div>
         </div>
-        <MoreHorizontal className="text-gray-600 cursor-pointer" size={20} />
+
+        <div className="flex items-center space-x-3">
+          {post.author?._id !== profile?._id && (
+            <button
+              onClick={handleFollowToggle}
+              className="text-sm font-medium transition-colors text-purple-600"
+            >
+              {isFollowing ? "Unfollow" : "Follow"}
+            </button>
+          )}
+          <MoreHorizontal className="text-gray-600 cursor-pointer" size={20} />
+        </div>
       </div>
 
-      {/* Media */}
       {/* Media */}
       <div className="relative w-full flex justify-center">
         <div className="w-full max-w-md aspect-square relative flex items-center justify-center overflow-hidden rounded-lg">
@@ -184,21 +207,25 @@ const PostCard = ({ post, currentUserId }) => {
         </div>
       </div>
 
-
-
-
       {/* Actions */}
       <div className="p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-4">
             <Heart
               size={24}
-              className={`cursor-pointer transition-colors ${postLikes.likedByUser ? "text-red-500 fill-red-500" : "text-gray-700"}`}
+              className={`cursor-pointer transition-colors ${postLikes.likedByUser ? "text-red-500 fill-red-500" : "text-gray-700"
+                }`}
               onClick={handleToggleLike}
             />
 
-            <MessageCircle className="text-gray-700 cursor-pointer hover:text-gray-600 transition-colors" size={24} />
-            <Send className="text-gray-700 cursor-pointer hover:text-gray-600 transition-colors" size={24} />
+            <MessageCircle
+              className="text-gray-700 cursor-pointer hover:text-gray-600 transition-colors"
+              size={24}
+            />
+            <Send
+              className="text-gray-700 cursor-pointer hover:text-gray-600 transition-colors"
+              size={24}
+            />
           </div>
           <Bookmark className="text-gray-700 cursor-pointer hover:text-gray-600 transition-colors" size={24} />
         </div>
@@ -210,7 +237,7 @@ const PostCard = ({ post, currentUserId }) => {
 
         {/* Caption */}
         <div className="text-gray-800">
-          <span className="font-medium">{post.user?.username}</span>
+          <span className="font-medium">{post.author?.userName}</span>
           <span className="ml-2">{post.caption}</span>
         </div>
 

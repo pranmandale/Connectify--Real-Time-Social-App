@@ -116,8 +116,10 @@ const LeftPart = () => {
         </div>
 
         <div className="space-y-3">
+          {/* {console.log(profile?.following)} */}
           {suggestedUsers?.length > 0 ? (
-            suggestedUsers.slice(0, 3).map((user) => <OtherUser key={user._id} user={user} />)
+            
+            suggestedUsers.slice(0, 3).map((user) => <OtherUser key={user._id} user={user}  />)
           ) : (
             <p className="text-gray-500 text-sm">No suggestions available</p>
           )}
