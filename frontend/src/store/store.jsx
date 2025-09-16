@@ -5,6 +5,8 @@ import userReducer from "../featurres/users/userSlice";
 import { injectStore } from "../services/axiosInstance";
 import postReducer from "../featurres/post/postSlice"
 import likeReducer from "../featurres/like/likeSlice"
+import followReducer from "../featurres/follows/followSlice"
+
 
 export const store = configureStore({
   reducer: {
@@ -12,7 +14,8 @@ export const store = configureStore({
     token: tokenReducer,
     user: userReducer,
     post : postReducer,
-    like : likeReducer
+    like : likeReducer,
+    follow : followReducer,
   },
   devTools: true,
   middleware: (getDefaultMiddleware) =>

@@ -86,38 +86,38 @@ const EditProfile = () => {
     return Object.keys(newErrors).length === 0
   }
 
+
+
   const handleSubmit = async (e) => {
-    e.preventDefault()
+  e.preventDefault()
 
-    if (!validateForm()) {
-      return
-    }
-
-    try {
-      const submitData = new FormData()
-
-      // Append text fields
-      submitData.append("name", formData.name)
-      submitData.append("userName", formData.userName)
-      submitData.append("bio", formData.bio)
-      submitData.append("gender", formData.gender)
-      submitData.append("location", formData.location)
-      submitData.append("website", formData.website)
-
-      // Append file if selected
-      if (selectedFile) {
-        submitData.append("profilePicture", selectedFile)
-      }
-
-      const result = await dispatch(editProfile(submitData))
-
-      if (editProfile.fulfilled.match(result)) {
-        navigate(`/profile/${formData.userName}`)
-      }
-    } catch (error) {
-      console.error("Error updating profile:", error)
-    }
+  if (!validateForm()) {
+    return
   }
+
+  try {
+    const submitData = new FormData()
+    submitData.append("name", formData.name)
+    submitData.append("userName", formData.userName)
+    submitData.append("bio", formData.bio)
+    submitData.append("gender", formData.gender)
+    submitData.append("location", formData.location)
+    submitData.append("website", formData.website)
+
+    if (selectedFile) {
+      submitData.append("profilePicture", selectedFile)
+    }
+
+    // ✅ unwrap gives the actual payload or throws error
+    const updatedUser = await dispatch(editProfile(submitData)).unwrap()
+
+    // navigate after successful update
+    navigate(`/profile/${updatedUser.userName}`)
+  } catch (error) {
+    console.error("Error updating profile:", error)
+  }
+}
+
 
   const handleCancel = () => {
     navigate(-1)

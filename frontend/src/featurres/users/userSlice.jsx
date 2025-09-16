@@ -1,4 +1,3 @@
-
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { axiosNodeClient } from "../../services/axiosInstance.js";
 import { logout } from "./authSlice.jsx";
@@ -45,16 +44,18 @@ export const getProfileByParams = createAsyncThunk("user/getProfileByParams", as
 });
 
 // Edit profile
-export const editProfile = createAsyncThunk("user/editProfile", async (formData, { rejectWithValue }) => {
-  try {
-    const res = await axiosNodeClient.put("/user/editProfile", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    return res.data.user;
-  } catch (error) {
-    return rejectWithValue(error.response?.data?.message || error.message);
+export const editProfile = createAsyncThunk(
+  "user/edit-profile",
+  async (formData, { rejectWithValue }) => {
+    try {
+      const res = await axiosNodeClient.put("/user/edit-profile", formData)
+      console.log(res.data);
+      return res.data.user
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message)
+    }
   }
-});
+)
 
 // Search users
 export const searchUsers = createAsyncThunk("user/searchUsers", async (searchQuery, { rejectWithValue }) => {
@@ -108,9 +109,19 @@ const userSlice = createSlice({
       .addCase(getProfileByParams.rejected, (state, action) => { state.profileByParams = null; state.loading = false; state.error = action.payload; })
 
       // Edit profile
-      .addCase(editProfile.pending, (state) => { state.loading = true; state.error = null; })
-      .addCase(editProfile.fulfilled, (state, action) => { state.profile = action.payload; state.loading = false; })
-      .addCase(editProfile.rejected, (state, action) => { state.loading = false; state.error = action.payload; })
+      .addCase(editProfile.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(editProfile.fulfilled, (state, action) => {
+        state.profile = action.payload
+        state.loading = false
+        state.error = null
+      })
+      .addCase(editProfile.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload
+      })
 
       // Search users
       .addCase(searchUsers.pending, (state) => { state.searchLoading = true; state.searchError = null; })

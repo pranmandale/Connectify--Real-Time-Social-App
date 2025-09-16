@@ -1,5 +1,5 @@
 import express from "express"
-import { editProfile, fetechProfile, getProfileByParams, suggestedUsers, toggleFollow } from "../controllers/user.controller.js";
+import { editProfile, fetechProfile, getFollowers, getFollowing, getProfileByParams, suggestedUsers, toggleFollow } from "../controllers/user.controller.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.js";
 
@@ -10,5 +10,7 @@ userRoute.get('/suggested-users', authenticate, suggestedUsers);
 userRoute.put('/edit-profile', authenticate,upload.single("profilePicture"), editProfile);
 userRoute.get('/get-profile/:userName',authenticate, getProfileByParams);
 userRoute.post('/followUser', authenticate, toggleFollow);
+userRoute.get('/getFollowers/:userId', authenticate, getFollowers);
+userRoute.get('/getFollowing/:userId', authenticate, getFollowing);
 
 export default userRoute;

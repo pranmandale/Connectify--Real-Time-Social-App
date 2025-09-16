@@ -1,7 +1,3 @@
-
-
-
-
 "use client"
 import {
   Heart,
@@ -23,6 +19,7 @@ import { useEffect, useState } from "react"
 import { getSuggestedPosts } from "../../featurres/post/postSlice"
 import { fetchPostLikes, toggleLikePost } from "../../featurres/like/likeSlice"
 import { toggleFollowUser } from "../../featurres/users/userSlice"
+import CreateStoryModal from "../../modals/CreateStoryModal"
 
 const Feed = () => {
   const dispatch = useDispatch()
@@ -33,15 +30,15 @@ const Feed = () => {
     dispatch(getSuggestedPosts())
   }, [dispatch])
 
-  // Static stories
+  // Example stories (later you’ll fetch following users' stories)
   const stories = [
-    { id: 1, name: "Your Story", avatar: profile?.profilePicture, isOwn: true },
-    { id: 2, name: "john_doe", avatar: "/diverse-user-avatars.png" },
-    { id: 3, name: "jane_smith", avatar: "/diverse-user-avatars.png" },
+    { id: profile?._id, name: "Your Story", avatar: profile?.profilePicture, isOwn: true, stories: profile?.stories || [] },
+    { id: 2, name: "john_doe", avatar: "/diverse-user-avatars.png", stories: [{ mediaUrl: "/sample.jpg", mediaType: "image" }] },
+    { id: 3, name: "jane_smith", avatar: "/diverse-user-avatars.png", stories: [{ mediaUrl: "/sample2.jpg", mediaType: "image" }] },
   ]
 
   return (
-    <div className="flex-1 bg-white/80 backdrop-blur-sm min-h-screen lg:h-screen relative lg:overflow-y-auto scrollbar-hide">
+    <div className="flex-1  bg-white/80 backdrop-blur-sm min-h-screen lg:h-screen relative lg:overflow-y-auto scrollbar-hide">
       {/* Stories */}
       <div className="p-4">
         <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
@@ -51,6 +48,7 @@ const Feed = () => {
               profileImage={story.avatar}
               userName={story.name}
               isOwn={story.isOwn}
+              stories={story.stories} // pass story data here
             />
           ))}
         </div>
@@ -58,33 +56,25 @@ const Feed = () => {
 
       {/* Posts */}
       <div className="pb-20">
-        {loading && (
-          <p className="text-center text-gray-500 py-10">Loading posts...</p>
-        )}
+        {loading && <p className="text-center text-gray-500 py-10">Loading posts...</p>}
         {error && <p className="text-center text-red-500 py-10">{error}</p>}
         {!loading && !error && suggestedPosts?.length === 0 && (
           <p className="text-center text-gray-500 py-10">No posts available</p>
         )}
 
         {suggestedPosts?.map((post) => (
-          <PostCard key={post._id} post={post} currentUserId={profile?._id} profile={profile} />
+          <PostCard
+            key={post._id}
+            post={post}
+            currentUserId={profile?._id}
+            profile={profile}
+          />
         ))}
-      </div>
-
-      {/* Mobile Bottom Nav */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 p-4 shadow-lg">
-        <div className="flex items-center justify-around">
-          <Home className="text-purple-600" size={28} />
-          <Search className="text-gray-500 hover:text-purple-600 transition-colors cursor-pointer" size={28} />
-          <PlusSquare className="text-gray-500 hover:text-purple-600 transition-colors cursor-pointer" size={28} />
-          <Heart className="text-gray-500 hover:text-red-500 transition-colors cursor-pointer" size={28} />
-          <Film className="text-gray-500 hover:text-purple-600 transition-colors cursor-pointer" size={28} />
-          <User className="text-gray-500 hover:text-purple-600 transition-colors cursor-pointer" size={28} />
-        </div>
       </div>
     </div>
   )
 }
+
 
 const PostCard = ({ post, currentUserId, profile }) => {
   const [mediaIndex, setMediaIndex] = useState(0)
@@ -97,11 +87,11 @@ const PostCard = ({ post, currentUserId, profile }) => {
     likeCount: post.likes?.length || 0,
   })
 
-  
+
 
   const isFollowing = profile?.following?.some((id) => id.toString() === post.author?._id?.toString())
 
-  
+
 
 
   const handlePrev = () =>
