@@ -1,13 +1,16 @@
 "use client"
 
 import { useState, useRef } from "react"
-import { X, Upload, Type, Loader2, Camera, Video } from "lucide-react"
+import { X, Upload, Type, Loader2, Camera, Video, Edit3 } from "lucide-react"
 import { useDispatch, useSelector } from "react-redux"
 import { createPortal } from "react-dom"
+import { uploadStory } from "../featurres/story/storySlice"
+import toast from "react-hot-toast"
 
 const CreateStoryModal = ({ isOpen, onClose }) => {
   const dispatch = useDispatch()
-  const { profile } = useSelector((state) => state.user)
+  const { profile } = useSelector((state) => state.user);
+  console.log(profile)
   const [loading, setLoading] = useState(false)
 
   const [storyData, setStoryData] = useState({
@@ -16,24 +19,18 @@ const CreateStoryModal = ({ isOpen, onClose }) => {
     backgroundColor: "#000000",
     textColor: "#ffffff",
     fontSize: "medium",
-  })
+    textPosition: { x: 50, y: 50 }, // % based positioning
+  });
   const [selectedFile, setSelectedFile] = useState(null)
   const [previewUrl, setPreviewUrl] = useState("")
   const [showTextEditor, setShowTextEditor] = useState(false)
+  const [addingOverlayText, setAddingOverlayText] = useState(false)
   const fileInputRef = useRef(null)
   const videoRef = useRef(null)
 
   const backgroundColors = [
-    "#000000",
-    "#ffffff",
-    "#ff6b6b",
-    "#4ecdc4",
-    "#45b7d1",
-    "#96ceb4",
-    "#ffeaa7",
-    "#dda0dd",
-    "#98d8c8",
-    "#f7dc6f",
+    "#000000", "#ffffff", "#ff6b6b", "#4ecdc4", "#45b7d1",
+    "#96ceb4", "#ffeaa7", "#dda0dd", "#98d8c8", "#f7dc6f"
   ]
 
   const textColors = ["#ffffff", "#000000", "#ff4757", "#1e90ff", "#2ed573", "#ffa502"]
@@ -52,12 +49,14 @@ const CreateStoryModal = ({ isOpen, onClose }) => {
     setSelectedFile(file)
     setPreviewUrl(URL.createObjectURL(file))
     setShowTextEditor(false)
+    setAddingOverlayText(false)
   }
 
   const handleTextStory = () => {
     setSelectedFile(null)
     setPreviewUrl("")
     setShowTextEditor(true)
+    setAddingOverlayText(false)
     setStoryData((prev) => ({ ...prev, mediaType: "text" }))
   }
 
@@ -70,18 +69,28 @@ const CreateStoryModal = ({ isOpen, onClose }) => {
     setLoading(true)
     try {
       const formData = new FormData()
-      if (selectedFile) formData.append("media", selectedFile)
+      if (selectedFile) formData.append("storyMedia", selectedFile)
       formData.append("mediaType", storyData.mediaType)
       formData.append("text", storyData.text)
       formData.append("backgroundColor", storyData.backgroundColor)
       formData.append("textColor", storyData.textColor)
       formData.append("fontSize", storyData.fontSize)
+      formData.append("textPositionX", storyData.textPosition.x)
+      formData.append("textPositionY", storyData.textPosition.y)
 
       console.log("Story data:", Object.fromEntries(formData))
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      // await new Promise((resolve) => setTimeout(resolve, 1500))
 
+
+      await toast.promise(
+        dispatch(uploadStory(formData)).unwrap(),
+        {
+          loading: "Uploading story...",
+          success: (res) => res?.message || "story created successfully",
+          error: (err) => err?.message || err?.error || "Failed to create story",
+        }
+      )
       handleClose()
-      alert("Story uploaded successfully!")
     } catch (error) {
       console.error("Upload failed:", error)
       alert("Failed to upload story. Please try again.")
@@ -98,10 +107,12 @@ const CreateStoryModal = ({ isOpen, onClose }) => {
       backgroundColor: "#000000",
       textColor: "#ffffff",
       fontSize: "medium",
+      textPosition: { x: 50, y: 50 },
     })
     setSelectedFile(null)
     setPreviewUrl("")
     setShowTextEditor(false)
+    setAddingOverlayText(false)
     onClose()
   }
 
@@ -128,25 +139,24 @@ const CreateStoryModal = ({ isOpen, onClose }) => {
             {previewUrl ? (
               <>
                 {storyData.mediaType === "video" ? (
-                  <video
-                    ref={videoRef}
-                    src={previewUrl}
-                    className="w-full h-full object-cover"
-                    controls
-                  />
+                  <video ref={videoRef} src={previewUrl} className="w-full h-full object-cover" controls />
                 ) : (
-                  <img
-                    src={previewUrl}
-                    alt="Story preview"
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={previewUrl} alt="Story preview" className="w-full h-full object-cover" />
                 )}
+
+                {/* Overlay Text */}
                 {storyData.text && (
-                  <div className="absolute inset-0 flex items-center justify-center p-4">
+                  <div
+                    className="absolute cursor-move"
+                    style={{
+                      top: `${storyData.textPosition.y}%`,
+                      left: `${storyData.textPosition.x}%`,
+                      transform: "translate(-50%, -50%)",
+                    }}
+                  >
                     <p
-                      className={`text-center font-bold drop-shadow-md ${
-                        textSizes.find((s) => s.value === storyData.fontSize)?.className
-                      }`}
+                      className={`text-center font-bold drop-shadow-md ${textSizes.find((s) => s.value === storyData.fontSize)?.className
+                        }`}
                       style={{ color: storyData.textColor }}
                     >
                       {storyData.text}
@@ -165,9 +175,8 @@ const CreateStoryModal = ({ isOpen, onClose }) => {
                     setStoryData((prev) => ({ ...prev, text: e.target.value }))
                   }
                   placeholder="Type your story..."
-                  className={`w-full bg-transparent text-center resize-none border-none outline-none font-bold ${
-                    textSizes.find((s) => s.value === storyData.fontSize)?.className
-                  }`}
+                  className={`w-full bg-transparent text-center resize-none border-none outline-none font-bold ${textSizes.find((s) => s.value === storyData.fontSize)?.className
+                    }`}
                   style={{ color: storyData.textColor }}
                   rows={4}
                 />
@@ -180,9 +189,17 @@ const CreateStoryModal = ({ isOpen, onClose }) => {
             )}
           </div>
 
-          {/* Font & Color Controls */}
-          {showTextEditor && (
+          {/* Text Options when adding overlay */}
+          {previewUrl && addingOverlayText && (
             <div className="mt-4 space-y-3">
+              <textarea
+                value={storyData.text}
+                onChange={(e) => setStoryData((prev) => ({ ...prev, text: e.target.value }))}
+                placeholder="Add text to your story..."
+                className="w-full bg-gray-50 rounded-lg p-2 border border-gray-300 text-center font-bold outline-none"
+                style={{ color: storyData.textColor }}
+              />
+
               {/* Font Size */}
               <div>
                 <p className="text-sm font-medium text-gray-700 mb-2">Font Size</p>
@@ -191,14 +208,11 @@ const CreateStoryModal = ({ isOpen, onClose }) => {
                     <button
                       key={size.value}
                       type="button"
-                      onClick={() =>
-                        setStoryData((prev) => ({ ...prev, fontSize: size.value }))
-                      }
-                      className={`px-3 py-1 rounded-lg border text-sm font-medium transition ${
-                        storyData.fontSize === size.value
-                          ? "bg-purple-500 text-white border-purple-500"
-                          : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
-                      }`}
+                      onClick={() => setStoryData((prev) => ({ ...prev, fontSize: size.value }))}
+                      className={`px-3 py-1 rounded-lg border text-sm font-medium transition ${storyData.fontSize === size.value
+                        ? "bg-purple-500 text-white border-purple-500"
+                        : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
+                        }`}
                     >
                       {size.label}
                     </button>
@@ -214,36 +228,9 @@ const CreateStoryModal = ({ isOpen, onClose }) => {
                     <button
                       key={color}
                       type="button"
-                      onClick={() =>
-                        setStoryData((prev) => ({ ...prev, textColor: color }))
-                      }
-                      className={`w-7 h-7 rounded-full border ${
-                        storyData.textColor === color
-                          ? "ring-2 ring-purple-500"
-                          : "border-gray-300"
-                      }`}
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Background Color */}
-              <div>
-                <p className="text-sm font-medium text-gray-700 mb-2">Background</p>
-                <div className="flex gap-2 flex-wrap">
-                  {backgroundColors.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() =>
-                        setStoryData((prev) => ({ ...prev, backgroundColor: color }))
-                      }
-                      className={`w-7 h-7 rounded-full border ${
-                        storyData.backgroundColor === color
-                          ? "ring-2 ring-purple-500"
-                          : "border-gray-300"
-                      }`}
+                      onClick={() => setStoryData((prev) => ({ ...prev, textColor: color }))}
+                      className={`w-7 h-7 rounded-full border ${storyData.textColor === color ? "ring-2 ring-purple-500" : "border-gray-300"
+                        }`}
                       style={{ backgroundColor: color }}
                     />
                   ))}
@@ -281,6 +268,20 @@ const CreateStoryModal = ({ isOpen, onClose }) => {
               >
                 <Type className="w-6 h-6 text-purple-500 mb-1" />
                 <span className="text-xs font-medium text-gray-700">Text</span>
+              </button>
+            </div>
+          )}
+
+          {/* Add Text button when media uploaded */}
+          {previewUrl && !addingOverlayText && (
+            <div className="mt-4 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setAddingOverlayText(true)}
+                className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-purple-50 border border-gray-300 flex items-center gap-2"
+              >
+                <Edit3 className="w-4 h-4 text-purple-500" />
+                <span className="text-sm font-medium text-gray-700">Add Text</span>
               </button>
             </div>
           )}

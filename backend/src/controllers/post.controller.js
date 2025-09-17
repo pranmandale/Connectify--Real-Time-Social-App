@@ -51,6 +51,14 @@ export const getAllPost = async (req, res) => {
     try {
         const posts = await Post.find({ author: req.user._id })
             .populate("author", "name userName profilePicture")
+            .populate({
+                path: "likes",
+                populate: { path: "author", select: "name userName profilePicture" },
+            })
+            .populate({
+                path: "comments",
+                populate: { path: "author", select: "name userName profilePicture" },
+            })
             .sort({ createdAt: -1 }); // newest posts first
 
         return res.status(200).json({
@@ -89,6 +97,7 @@ export const getPostById = async (req, res) => {
         return res.status(500).json({ message: "Internal server error", error });
     }
 };
+
 
 // Edit post
 export const updatePost = async (req, res) => {
@@ -157,6 +166,14 @@ export const getAllSuggestedPosts = async (req, res) => {
     try {
         const posts = await Post.find()
             .populate("author", "name userName profilePicture")
+            .populate({
+                path: "likes",
+                populate: { path: "author", select: "name userName profilePicture" },
+            })
+            .populate({
+                path: "comments",
+                populate: { path: "author", select: "name userName profilePicture" },
+            })
             .sort({ createdAt: -1 }); // newest posts first
 
         return res.status(200).json({

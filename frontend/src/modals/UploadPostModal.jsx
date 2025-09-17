@@ -42,31 +42,7 @@ const UploadPostModal = ({ isOpen, onClose }) => {
         setSelectedFiles((prev) => prev.filter((_, i) => i !== index))
     }
 
-    //   const handleSubmit = async (e) => {
-    //     e.preventDefault()
-
-    //     if (selectedFiles.length === 0) {
-    //       alert("Please select at least one file")
-    //       return
-    //     }
-
-    //     const uploadFormData = new FormData()
-    //     uploadFormData.append("title", formData.title)
-    //     uploadFormData.append("caption", formData.caption)
-
-    //     // append all files
-    //     selectedFiles.forEach((item) => {
-    //       uploadFormData.append("media", item.file)
-    //     })
-
-    //     try {
-    //       await dispatch(uploadPost(uploadFormData)).unwrap()
-    //       handleClose()
-    //     } catch (error) {
-    //       console.error("Upload failed:", error)
-    //       alert("Failed to upload post. Please try again.")
-    //     }
-    //   }
+   
 
     const handleSubmit = async (e) => {
         e.preventDefault()

@@ -5,11 +5,6 @@ import {
   Send,
   Bookmark,
   MoreHorizontal,
-  Home,
-  Search,
-  PlusSquare,
-  Film,
-  User,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react"
@@ -20,37 +15,59 @@ import { getSuggestedPosts } from "../../featurres/post/postSlice"
 import { fetchPostLikes, toggleLikePost } from "../../featurres/like/likeSlice"
 import { toggleFollowUser } from "../../featurres/users/userSlice"
 import CreateStoryModal from "../../modals/CreateStoryModal"
+import { getAllStories } from "../../featurres/story/storySlice"
 
 const Feed = () => {
   const dispatch = useDispatch()
-  const { profile } = useSelector((state) => state.user)
+  const { profile } = useSelector((state) => state.user);
   const { suggestedPosts, loading, error } = useSelector((state) => state.post)
+  const { allStories, loading: storyLoading, error: storyError } = useSelector((state) => state.story)
 
+  const [isStoryModalOpen, setIsStoryModalOpen] = useState(false)
+
+  console.log("profile user", profile)
+
+  // fetch posts
   useEffect(() => {
     dispatch(getSuggestedPosts())
   }, [dispatch])
 
-  // Example stories (later you’ll fetch following users' stories)
-  const stories = [
-    { id: profile?._id, name: "Your Story", avatar: profile?.profilePicture, isOwn: true, stories: profile?.stories || [] },
-    { id: 2, name: "john_doe", avatar: "/diverse-user-avatars.png", stories: [{ mediaUrl: "/sample.jpg", mediaType: "image" }] },
-    { id: 3, name: "jane_smith", avatar: "/diverse-user-avatars.png", stories: [{ mediaUrl: "/sample2.jpg", mediaType: "image" }] },
-  ]
+  // fetch stories
+  useEffect(() => {
+    if (profile?._id) {
+      dispatch(getAllStories())
+    }
+  }, [dispatch, profile?._id])
 
   return (
-    <div className="flex-1  bg-white/80 backdrop-blur-sm min-h-screen lg:h-screen relative lg:overflow-y-auto scrollbar-hide">
+    <div className="flex-1 bg-white/80 backdrop-blur-sm min-h-screen lg:h-screen relative lg:overflow-y-auto scrollbar-hide">
       {/* Stories */}
       <div className="p-4">
         <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
-          {stories.map((story) => (
-            <StoryCard
-              key={story.id}
-              profileImage={story.avatar}
-              userName={story.name}
-              isOwn={story.isOwn}
-              stories={story.stories} // pass story data here
-            />
-          ))}
+          {/* own story (always visible) */}
+          <StoryCard
+            key="own"
+            profileImage={profile?.profilePicture}
+            userName="Your Story"
+            isOwn
+            stories={profile?.stories || []}
+            onCreate={() => setIsStoryModalOpen(true)}
+          />
+
+          {/* other users’ stories */}
+          {storyLoading && <p className="text-gray-500">Loading stories...</p>}
+          {storyError && <p className="text-red-500">{storyError}</p>}
+
+          {allStories
+            ?.filter(story => story.author?._id !== profile?._id)
+            .map(story => (
+              <StoryCard
+                key={story._id}
+                profileImage={story.author?.profilePicture || "/diverse-user-avatars.png"}
+                userName={story.author?.userName}
+                stories={[story]}
+              />
+            ))}
         </div>
       </div>
 
@@ -71,28 +88,24 @@ const Feed = () => {
           />
         ))}
       </div>
+
+      {/* Create Story Modal */}
+      <CreateStoryModal isOpen={isStoryModalOpen} onClose={() => setIsStoryModalOpen(false)} />
     </div>
   )
 }
-
 
 const PostCard = ({ post, currentUserId, profile }) => {
   const [mediaIndex, setMediaIndex] = useState(0)
   const mediaArray = Array.isArray(post.mediaUrl) ? post.mediaUrl : [post.mediaUrl].filter(Boolean)
   const dispatch = useDispatch()
 
-  // Likes state
   const [postLikes, setPostLikes] = useState({
     likedByUser: false,
     likeCount: post.likes?.length || 0,
   })
 
-
-
   const isFollowing = profile?.following?.some((id) => id.toString() === post.author?._id?.toString())
-
-
-
 
   const handlePrev = () =>
     setMediaIndex((prev) => (prev === 0 ? mediaArray.length - 1 : prev - 1))
@@ -101,7 +114,6 @@ const PostCard = ({ post, currentUserId, profile }) => {
 
   const currentMedia = mediaArray[mediaIndex]
 
-  // Fetch likes on mount
   useEffect(() => {
     if (post._id && currentUserId) {
       dispatch(fetchPostLikes({ postId: post._id, currentUserId })).then((res) => {
@@ -125,7 +137,6 @@ const PostCard = ({ post, currentUserId, profile }) => {
   }
 
   const handleFollowToggle = () => {
-    // setIsFollowing((prev) => !prev) // instant UI toggle
     dispatch(toggleFollowUser(post.author._id))
   }
 
@@ -177,7 +188,6 @@ const PostCard = ({ post, currentUserId, profile }) => {
             />
           )}
 
-          {/* Carousel Controls */}
           {mediaArray.length > 1 && (
             <>
               <button
@@ -207,7 +217,6 @@ const PostCard = ({ post, currentUserId, profile }) => {
                 }`}
               onClick={handleToggleLike}
             />
-
             <MessageCircle
               className="text-gray-700 cursor-pointer hover:text-gray-600 transition-colors"
               size={24}
@@ -217,28 +226,27 @@ const PostCard = ({ post, currentUserId, profile }) => {
               size={24}
             />
           </div>
-          <Bookmark className="text-gray-700 cursor-pointer hover:text-gray-600 transition-colors" size={24} />
+          <Bookmark
+            className="text-gray-700 cursor-pointer hover:text-gray-600 transition-colors"
+            size={24}
+          />
         </div>
 
-        {/* Likes */}
         <p className="text-gray-800 font-medium mb-2">
           {postLikes.likeCount || 0} likes
         </p>
 
-        {/* Caption */}
         <div className="text-gray-800">
           <span className="font-medium">{post.author?.userName}</span>
           <span className="ml-2">{post.caption}</span>
         </div>
 
-        {/* Comments */}
         {post.comments?.length > 0 && (
           <button className="text-gray-500 text-sm mt-2 hover:text-gray-600 transition-colors">
             View all {post.comments.length} comments
           </button>
         )}
 
-        {/* Add Comment */}
         <div className="flex items-center mt-3 pt-3 border-t border-gray-200">
           <input
             type="text"

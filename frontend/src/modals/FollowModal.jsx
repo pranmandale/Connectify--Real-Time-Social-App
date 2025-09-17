@@ -5,6 +5,7 @@ import { X, Search } from "lucide-react"
 import { useSelector, useDispatch } from "react-redux"
 import { toggleFollowUser } from "../featurres/users/userSlice.jsx"
 import { getFollowers, getFollowing } from "../featurres/follows/followSlice.jsx"
+import { useNavigate } from "react-router-dom"
 
 const FollowModal = ({ isOpen, onClose, userId, userName, type = "followers", list }) => {
 
@@ -16,9 +17,10 @@ const FollowModal = ({ isOpen, onClose, userId, userName, type = "followers", li
 
   const { profile } = useSelector((state) => state.user)
   const dispatch = useDispatch()
-  const {followersList, followingList, error} = useSelector(state => state.follow);
+  const { followersList, followingList, error } = useSelector(state => state.follow);
 
   console.log(followersList)
+  const navigate = useNavigate()
 
   // Mock data - replace with actual API calls
   const mockFollowers = [
@@ -61,8 +63,9 @@ const FollowModal = ({ isOpen, onClose, userId, userName, type = "followers", li
       isFollowing: true,
     },
   ]
-  
-   useEffect(() => {
+
+  // onClick={() => navigate(`/profile/${user?.userName}`)}
+  useEffect(() => {
     if (isOpen) {
       if (type === "followers") {
         dispatch(getFollowers(userId));
@@ -74,11 +77,11 @@ const FollowModal = ({ isOpen, onClose, userId, userName, type = "followers", li
     }
   }, [isOpen, type, userId, dispatch]);
 
-   useEffect(() => {
+  useEffect(() => {
     if (isOpen) {
       setLoading(true)
       setTimeout(() => {
-        setUsers(type === "followers" ?  followersList : followingList);
+        setUsers(type === "followers" ? followersList : followingList);
         setLoading(false)
       }, 500)
     }
@@ -139,7 +142,9 @@ const FollowModal = ({ isOpen, onClose, userId, userName, type = "followers", li
           ) : filteredUsers.length > 0 ? (
             <div className="p-4 space-y-3">
               {filteredUsers.map((user) => (
+
                 <div key={user._id} className="flex items-center justify-between">
+                  {console.log("user", user?.userName)}
                   <div className="flex items-center gap-3">
                     <img
                       src={user.profilePicture || "/diverse-user-avatars.png"}
@@ -147,19 +152,29 @@ const FollowModal = ({ isOpen, onClose, userId, userName, type = "followers", li
                       className="w-12 h-12 rounded-full object-cover"
                     />
                     <div>
-                      <p className="font-medium text-gray-800">{user.userName}</p>
-                      <p className="text-sm text-gray-600">{user.name}</p>
+                      <p className="font-medium text-gray-800 cursor-pointer"
+                        onClick={() => {
+                          navigate(`/profile/${user?.userName}`)
+                          onClose()
+                        }}
+
+                      >{user.userName}</p>
+                      <p className="text-sm text-gray-600 cursor-pointer"
+                        onClick={() => {
+                          navigate(`/profile/${user?.userName}`)
+                          onClose()
+                        }}
+                      >{user.name}</p>
                     </div>
                   </div>
 
                   {profile && user._id !== profile._id && (
                     <button
                       onClick={() => handleFollowToggle(user._id)}
-                      className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                        isFollowing(user._id)
+                      className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${isFollowing(user._id)
                           ? "bg-gray-200 text-gray-800 hover:bg-gray-300"
                           : "bg-purple-500 text-white hover:bg-purple-600"
-                      }`}
+                        }`}
                     >
                       {isFollowing(user._id) ? "Following" : "Follow"}
                     </button>

@@ -2,17 +2,25 @@ import User from "../models/user.model.js";
 import uploadOnCloudinary from "../utils/cloudinary.js"
 
 
+
+
+
 export const fetechProfile = async (req, res) => {
   try {
-    const user = req.user;
-    await user.populate("posts");
+    const userId = req.user._id;
+
+    // Fetch the user from DB with populated fields
+    const user = await User.findById(userId)
+      .populate("posts")
+      .populate("stories")
+
+
     if (!user) {
       return res.status(404).json({ message: "User does not exist" });
     }
 
-    // Remove password before sending
+    // Remove password
     const { password, ...userData } = user.toObject();
-
 
     return res.status(200).json({
       message: "User fetched successfully",
@@ -25,7 +33,6 @@ export const fetechProfile = async (req, res) => {
     });
   }
 };
-
 
 export const suggestedUsers = async (req, res) => {
   try {

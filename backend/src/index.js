@@ -16,6 +16,7 @@ app.use(cors({
   credentials : true,
 }));
 app.use(cookieParser())
+app.use(express.urlencoded())
 
 
 
@@ -31,6 +32,9 @@ app.use('/api/v1/user', userRoute);
 // import post routes 
 import postRoute from './routes/post.route.js';
 app.use('/api/v1/post', postRoute);
+
+import storyRouter from './routes/story.route.js';
+app.use('/api/v1/story', storyRouter);
 
 
 // import like routes
