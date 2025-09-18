@@ -7,50 +7,46 @@ const commentSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-
-    // Polymorphic target (can be Post, Reel, or Story)
     commentableId: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
-      refPath: "commentableType", // dynamic reference
+      refPath: "commentableType", // Post | Story | Reel
     },
-    // comments can be on post reel and story
     commentableType: {
       type: String,
       required: true,
-      enum: ["Post", "Reel", "Story"],
+      enum: ["Post", "Story", "Reel"],
     },
-
     content: {
       type: String,
       required: true,
       trim: true,
     },
-
-    // comments can have likes
+    parentComment: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Comment",
+      default: null,
+    },
     likes: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Like",
-        default: [],
-      },
-    ],
-
-    // comments can have replies also
-    replies: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Comment",
-        default: [],
       },
     ],
   },
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
-// ✅ Virtual: count likes
+// Virtual: like count
 commentSchema.virtual("likeCount").get(function () {
   return this.likes.length;
+});
+
+// Virtual: replies (dynamic)
+commentSchema.virtual("replies", {
+  ref: "Comment",
+  localField: "_id",
+  foreignField: "parentComment",
 });
 
 const Comment = mongoose.model("Comment", commentSchema);

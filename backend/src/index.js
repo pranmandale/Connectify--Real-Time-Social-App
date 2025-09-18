@@ -41,6 +41,10 @@ app.use('/api/v1/story', storyRouter);
 import likeRoute from './routes/like.route.js';
 app.use('/api/v1/like', likeRoute)
 
+// import comment routes
+import commentRoute from './routes/comment.route.js';
+app.use('/api/v1/comment', commentRoute);
+
 
 app.listen(PORT, () => {
   connectDB();

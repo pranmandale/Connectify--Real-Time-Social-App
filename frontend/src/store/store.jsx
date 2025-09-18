@@ -7,6 +7,7 @@ import postReducer from "../featurres/post/postSlice"
 import likeReducer from "../featurres/like/likeSlice"
 import followReducer from "../featurres/follows/followSlice";
 import storyReducer from "../featurres/story/storySlice"
+import commentsReducer from "../featurres/comments/CommentSlice"
 
 
 export const store = configureStore({
@@ -17,7 +18,8 @@ export const store = configureStore({
     post : postReducer,
     like : likeReducer,
     follow : followReducer,
-    story : storyReducer
+    story : storyReducer,
+    comment : commentsReducer,
   },
   devTools: true,
   middleware: (getDefaultMiddleware) =>

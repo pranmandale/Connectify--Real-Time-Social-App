@@ -16,6 +16,8 @@ import { fetchPostLikes, toggleLikePost } from "../../featurres/like/likeSlice"
 import { toggleFollowUser } from "../../featurres/users/userSlice"
 import CreateStoryModal from "../../modals/CreateStoryModal"
 import { getAllStories } from "../../featurres/story/storySlice"
+import { addComment, getAllComments } from "../../featurres/comments/CommentSlice"
+import CommentsModal from "../../modals/CommentsModal"
 
 const Feed = () => {
   const dispatch = useDispatch()
@@ -140,6 +142,53 @@ const PostCard = ({ post, currentUserId, profile }) => {
     dispatch(toggleFollowUser(post.author._id))
   }
 
+
+  // comments from redux
+  const { postComments, loading: commentsLoading } = useSelector((state) => state.comment);
+
+  // safely get comments for this post
+  const postCommentsData = postComments[post._id] || { comments: [], count: 0 };
+
+
+  // console.log(PostCommentsCount);
+
+  const [newComment, setNewComment] = useState("");
+
+  useEffect(() => {
+    if (post._id) {
+      dispatch(getAllComments({ contentType: "Post", contentId: post._id }));
+    }
+  }, [dispatch, post._id]);
+
+  // console.log(PostCommentsCount)
+
+
+  // modal states
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+
+  // Open modal handler
+  const openComments = () => setIsCommentsOpen(true);
+
+  // Close modal handler
+  const closeComments = () => setIsCommentsOpen(false);
+
+  const handleCommentSubmit = (e) => {
+    e.preventDefault();
+    if (!newComment.trim() || !profile) return;
+
+    dispatch(
+      addComment({
+        contentType: "Post",
+        contentId: post._id, // ✅ correct id
+        content: newComment.trim(),
+      })
+    ).then(() => {
+      setNewComment("");
+      dispatch(getAllComments({ contentType: "Post", contentId: post._id })); // ✅ correct id
+    });
+  };
+
+
   return (
     <div className="border-b border-gray-200 mb-4">
       {/* Header */}
@@ -218,6 +267,7 @@ const PostCard = ({ post, currentUserId, profile }) => {
               onClick={handleToggleLike}
             />
             <MessageCircle
+              onClick={openComments}
               className="text-gray-700 cursor-pointer hover:text-gray-600 transition-colors"
               size={24}
             />
@@ -237,27 +287,51 @@ const PostCard = ({ post, currentUserId, profile }) => {
         </p>
 
         <div className="text-gray-800">
-          <span className="font-medium">{post.author?.userName}</span>
           <span className="ml-2">{post.caption}</span>
         </div>
 
-        {post.comments?.length > 0 && (
-          <button className="text-gray-500 text-sm mt-2 hover:text-gray-600 transition-colors">
-            View all {post.comments.length} comments
+        {postCommentsData.count > 0 && (
+          <button
+            onClick={openComments}
+            className="text-gray-500 text-sm mt-2 hover:text-gray-600 cursor-pointer transition-colors"
+          >
+            View all {postCommentsData.count} comments
           </button>
         )}
 
+
         <div className="flex items-center mt-3 pt-3 border-t border-gray-200">
-          <input
-            type="text"
-            placeholder="Add a comment..."
-            className="flex-1 bg-transparent text-gray-800 placeholder-gray-500 outline-none"
-          />
-          <button className="text-purple-600 font-medium ml-2 hover:text-purple-700 transition-colors">
-            Post
-          </button>
+          <form
+            onSubmit={handleCommentSubmit}
+            className="flex items-center w-full" // ✅ makes input + button align horizontally
+          >
+            <input
+              type="text"
+              placeholder="Add a comment..."
+              className="flex-1 bg-transparent text-gray-800 placeholder-gray-500 outline-none"
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+            />
+            {newComment.trim() && (
+              <button
+                type="submit"
+                className="text-purple-600 font-medium ml-2 hover:text-purple-700 transition-colors"
+              >
+                Post
+              </button>
+            )}
+          </form>
         </div>
+
       </div>
+
+
+      <CommentsModal
+        isOpen={isCommentsOpen}
+        onClose={closeComments}
+        postId={post._id}
+        postOwner={post.author}
+      />
     </div>
   )
 }
