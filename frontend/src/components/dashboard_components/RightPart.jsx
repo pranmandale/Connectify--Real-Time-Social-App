@@ -4,10 +4,12 @@ import { Search, MessageCircle } from "lucide-react"
 import { useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
 import dp from "../../assets/s1.png"
+import OtherUser from "../common/OtherUser"
 
 const RightPart = () => {
   const navigate = useNavigate()
-  const { profile } = useSelector((state) => state.user)
+  const { profile, suggestedUsers } = useSelector((state) => state.user)
+
 
   const conversations = [
     {
@@ -39,32 +41,44 @@ const RightPart = () => {
     },
   ]
 
-  const suggestedUsers = [
-    { id: 1, name: "sarah_jones", avatar: "/diverse-user-avatars.png", mutualFriends: 5 },
-    { id: 2, name: "alex_brown", avatar: "/diverse-user-avatars.png", mutualFriends: 3 },
-    { id: 3, name: "emma_davis", avatar: "/diverse-user-avatars.png", mutualFriends: 8 },
-  ]
+  // const suggestedUsers = [
+  //   { id: 1, name: "sarah_jones", avatar: "/diverse-user-avatars.png", mutualFriends: 5 },
+  //   { id: 2, name: "alex_brown", avatar: "/diverse-user-avatars.png", mutualFriends: 3 },
+  //   { id: 3, name: "emma_davis", avatar: "/diverse-user-avatars.png", mutualFriends: 8 },
+  // ]
 
   return (
     <div className="w-[25%] hidden lg:flex flex-col h-screen bg-white/80 backdrop-blur-sm p-6">
       {/* Messages Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-gray-800 text-xl font-semibold">Messages</h2>
-        <MessageCircle className="text-gray-500 cursor-pointer hover:text-purple-600 transition-colors" size={24} />
+        <h2 className="text-gray-800 text-sm text-center font-semibold">Suggested for you</h2>
+        {/* <MessageCircle className="text-gray-500 cursor-pointer hover:text-purple-600 transition-colors" size={24} /> */}
+        <button className="text-sm text-gray-800 hover:text-purple-600 transition-colors">
+          See All
+        </button>
+      </div>
+      <div className="space-y-4 pt-2">
+        {/* {console.log(profile?.following)} */}
+        {suggestedUsers?.length > 0 ? (
+
+          suggestedUsers.slice(0, 7).map((user) => <OtherUser key={user._id} user={user} />)
+        ) : (
+          <p className="text-gray-500 text-sm">No suggestions available</p>
+        )}
       </div>
 
       {/* Search */}
-      <div className="relative mb-4">
+      {/* <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
         <input
           type="text"
           placeholder="Search messages..."
           className="w-full bg-gray-100 text-gray-800 placeholder-gray-500 rounded-lg pl-10 pr-4 py-3 outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all"
         />
-      </div>
+      </div> */}
 
       {/* Messages List with fixed height */}
-      <div className="flex-1 overflow-y-auto mb-4 scrollbar-hide">
+      {/* <div className="flex-1 overflow-y-auto mb-4 scrollbar-hide">
         <h3 className="text-gray-600 font-medium mb-2">Recent</h3>
         <div className="space-y-3">
           {conversations.map((conversation) => (
@@ -100,7 +114,7 @@ const RightPart = () => {
             </div>
           ))}
         </div>
-      </div>
+      </div> */}
 
       {/* Your Account at the bottom */}
       <div className="mt-auto mb-6 pt-4 border-t border-gray-200">

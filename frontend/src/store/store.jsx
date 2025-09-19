@@ -8,6 +8,7 @@ import likeReducer from "../featurres/like/likeSlice"
 import followReducer from "../featurres/follows/followSlice";
 import storyReducer from "../featurres/story/storySlice"
 import commentsReducer from "../featurres/comments/CommentSlice"
+import messageReducer from "../featurres/messages/messageSlice.js"
 
 
 export const store = configureStore({
@@ -20,6 +21,7 @@ export const store = configureStore({
     follow : followReducer,
     story : storyReducer,
     comment : commentsReducer,
+    messages : messageReducer
   },
   devTools: true,
   middleware: (getDefaultMiddleware) =>

@@ -6,6 +6,7 @@ import {
   PlusSquare,
   Film,
   Heart,
+  MessageCircle,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../featurres/users/authSlice";
@@ -86,6 +87,19 @@ const LeftPart = () => {
             <Film size={24} />
             <span className="text-lg">Reels</span>
           </div>
+
+            <div
+            onClick={() => {handleNavigation("/messages")}}
+            className={`flex items-center space-x-3 cursor-pointer transition-colors p-2 rounded-lg hover:bg-purple-50 ${
+              isActive("/messages") ? "text-purple-600" : "text-gray-600 hover:text-purple-600"
+            }`}
+            >
+              <MessageCircle size={24}/>
+            <span className="text-lg">Messages</span>
+
+            </div>
+
+
           <div
             onClick={() => handleNavigation("/notifications")}
             className={`flex items-center space-x-3 cursor-pointer transition-colors p-2 rounded-lg hover:bg-purple-50 ${

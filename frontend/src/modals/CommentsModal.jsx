@@ -81,7 +81,7 @@ const CommentsModal = ({ isOpen, onClose, postId, postOwner }) => {
 
   const handleReply = (comment) => {
     setReplyingTo(comment);
-    setNewComment(`@${comment.user.userName} `);
+    setNewComment(`@${comment.author.userName} `);
   };
 
   const cancelReply = () => {
@@ -231,7 +231,7 @@ const CommentsModal = ({ isOpen, onClose, postId, postOwner }) => {
           <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
             <span className="text-sm text-gray-600">
               Replying to{" "}
-              <span className="font-medium">@{replyingTo.user.userName}</span>
+              <span className="font-medium">@{replyingTo.author.userName}</span>
             </span>
             <button
               onClick={cancelReply}
@@ -259,7 +259,7 @@ const CommentsModal = ({ isOpen, onClose, postId, postOwner }) => {
               type="text"
               placeholder={
                 replyingTo
-                  ? `Reply to ${replyingTo.user.userName}...`
+                  ? `Reply to ${replyingTo.author.userName}...`
                   : "Add a comment..."
               }
               value={newComment}

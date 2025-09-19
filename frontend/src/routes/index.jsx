@@ -7,6 +7,7 @@ import ForgotPassword from "../pages/ForgotPassword";
 import Profile from "../pages/Profile";
 import EditProfile from "../pages/EditProfile";
 import SearchPage from "../pages/SearchPage";
+import Messages from "../pages/Messages";
 
 const AppRoutes = ({ isAuthenticated }) => {
   return (
@@ -15,40 +16,48 @@ const AppRoutes = ({ isAuthenticated }) => {
       <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />} />
       <Route path="/signup" element={!isAuthenticated ? <Signup /> : <Navigate to="/dashboard" />} />
       <Route path="/" element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />} />
-      <Route path="/forgot-password" element={!isAuthenticated ? <ForgotPassword /> : <Navigate to="/login"/>}/>
+      <Route path="/forgot-password" element={!isAuthenticated ? <ForgotPassword /> : <Navigate to="/login" />} />
 
       {/* Protected routes */}
-      <Route 
-        path="/dashboard" 
+      <Route
+        path="/dashboard"
         element={
           <ProtectedRoute>
             <Dashboard />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/profile/:userName" 
+      <Route
+        path="/profile/:userName"
         element={
           <ProtectedRoute>
             <Profile />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route 
-        path="/editProfile" 
+      <Route
+        path="/editProfile"
         element={
           <ProtectedRoute>
             <EditProfile />
           </ProtectedRoute>
-        } 
+        }
       />
-       <Route 
-        path="/search" 
+      <Route
+        path="/search"
         element={
           <ProtectedRoute>
             <SearchPage />
           </ProtectedRoute>
-        } 
+        }
+      />
+      <Route
+        path="/messages"
+        element={
+          <ProtectedRoute>
+            <Messages />
+          </ProtectedRoute>
+        }
       />
 
       {/* Catch-all route */}
