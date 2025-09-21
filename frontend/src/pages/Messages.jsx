@@ -1,3 +1,8 @@
+
+
+
+
+
 import React, { useState, useEffect, useRef } from "react";
 import { Search, Send, Phone, Video, Info, Image } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -9,14 +14,15 @@ import {
   setCurrentRoom,
 } from "../featurres/messages/messageSlice";
 import { getFollowers, getFollowing } from "../featurres/follows/followSlice";
+import { setOnlineUsers } from "../featurres/messages/onlineUserSlice.js";
+import { markUserReadMsg } from "../featurres/msgNotifications/msgNotiSlice";
 
 const Messages = () => {
   const dispatch = useDispatch();
   const { profile } = useSelector((state) => state.user);
   const { followersList, followingList } = useSelector((state) => state.follow);
   const { messages } = useSelector((state) => state.messages);
-
-  console.log(messages)
+  const { onlineUsers } = useSelector((state) => state.online);
 
   const [selectedUser, setSelectedUser] = useState(null);
   const [message, setMessage] = useState("");
@@ -39,15 +45,15 @@ const Messages = () => {
     if (!socket) return;
 
     const handleChatMessage = (msg) => {
-      const sender =
+      const currentRoomId = [loggedInUserId, selectedUser?._id].sort().join("_");
+
+      const senderId =
         typeof msg.senderId === "string" ? msg.senderId : msg.senderId._id;
 
-      // Only add if it's the current room and not from self
-      if (msg.roomId === selectedUser?._id && sender !== loggedInUserId) {
+      if (msg.roomId === currentRoomId && senderId !== loggedInUserId) {
         dispatch(addMessage(msg));
       }
     };
-
 
     socket.on("chatMessage", handleChatMessage);
     return () => socket.off("chatMessage", handleChatMessage);
@@ -58,7 +64,7 @@ const Messages = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Send message function
+  // Send message
   const sendMessage = () => {
     if (!message.trim() || !selectedUser) return;
 
@@ -73,8 +79,7 @@ const Messages = () => {
     const socket = getSocket();
     socket.emit("chatMessage", newMessage);
 
-    // Optimistic UI update for sender
-    dispatch(addMessage({ ...newMessage, type: "sent" }));
+    dispatch(addMessage(newMessage));
     setMessage("");
   };
 
@@ -86,16 +91,32 @@ const Messages = () => {
   };
 
   // Selecting a chat user
-  const handleSelectUser = (user) => {
-    setSelectedUser(user);
-    const roomId = [loggedInUserId, user._id].sort().join("_");
-    dispatch(setCurrentRoom(roomId));
-    dispatch(fetchMessages(roomId));
-    dispatch(markMessagesAsRead({ roomId}));
+  // const handleSelectUser = (user) => {
+  //   setSelectedUser(user);
+  //   const roomId = [loggedInUserId, user._id].sort().join("_");
+  //   dispatch(setCurrentRoom(roomId));
+  //   dispatch(fetchMessages(roomId));
+  //   dispatch(markMessagesAsRead({ roomId }));
 
-    const socket = getSocket();
-    socket?.emit("joinRoom", user._id);
-  };
+  //   const socket = getSocket();
+  //   socket?.emit("joinRoom", roomId);
+  // };
+
+
+  const handleSelectUser = (user) => {
+  setSelectedUser(user);
+  const roomId = [loggedInUserId, user._id].sort().join("_");
+
+  dispatch(setCurrentRoom(roomId));
+  dispatch(fetchMessages(roomId));
+  dispatch(markMessagesAsRead({ roomId }));
+
+  const socket = getSocket();
+  socket?.emit("joinRoom", roomId);
+
+  // ✅ clear unread for this user
+  dispatch(markUserReadMsg(String(user._id)));
+};
 
   // Merge followers + following for sidebar without duplicates
   const chatUsers = [...followersList, ...followingList].filter(
@@ -107,6 +128,20 @@ const Messages = () => {
       u.name.toLowerCase().includes(search.toLowerCase()) ||
       u.userName.toLowerCase().includes(search.toLowerCase())
   );
+
+  // Listen for online users
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleOnlineUsers = (online) => {
+      // Normalize IDs to strings
+      dispatch(setOnlineUsers(online.map((id) => String(id))));
+    };
+
+    socket.on("getOnlineUsers", handleOnlineUsers);
+    return () => socket.off("getOnlineUsers", handleOnlineUsers);
+  }, [dispatch]);
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
@@ -135,20 +170,29 @@ const Messages = () => {
               <div
                 key={user._id}
                 onClick={() => handleSelectUser(user)}
-                className={`cursor-pointer p-4 mx-2 my-1 rounded-xl hover:bg-gray-50/80 transition-all duration-200 transform hover:scale-[1.02] ${selectedUser?._id === user._id
+                className={`cursor-pointer p-4 mx-2 my-1 rounded-xl hover:bg-gray-50/80 transition-all duration-200 transform hover:scale-[1.02] ${
+                  selectedUser?._id === user._id
                     ? "bg-gradient-to-r from-purple-100/80 to-pink-100/80 shadow-md"
                     : ""
-                  }`}
+                }`}
               >
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-3 relative">
                   <img
                     src={user.profilePicture}
                     alt={user.name}
                     className="w-12 h-12 rounded-full object-cover"
                   />
+                  {/* Online dot */}
+                  {onlineUsers.includes(String(user._id)) && (
+                    <span className="absolute bottom-3 left-10 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></span>
+                  )}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 truncate text-sm">{user.userName}</h3>
-                    <p className="text-sm text-gray-600 truncate mt-1">{user.name}</p>
+                    <h3 className="font-semibold text-gray-900 truncate text-sm">
+                      {user.userName}
+                    </h3>
+                    <p className="text-sm text-gray-600 truncate mt-1">
+                      {user.name}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -174,43 +218,56 @@ const Messages = () => {
                   className="w-10 h-10 rounded-full object-cover"
                 />
                 <div>
-                  <h2 className="font-semibold text-gray-900">{selectedUser.name}</h2>
+                  <h2 className="font-semibold text-gray-900">
+                    {selectedUser.name}
+                  </h2>
                   <p className="text-sm text-gray-500">
-                    {selectedUser.online ? "Active now" : "Offline"}
+                    {onlineUsers.includes(String(selectedUser._id))
+                      ? "Active now 🟢"
+                      : "Offline ⚪"}
                   </p>
                 </div>
               </div>
               <div className="flex items-center space-x-4">
-                <Phone className="w-5 h-5 text-gray-600" />
-                <Video className="w-5 h-5 text-gray-600" />
-                <Info className="w-5 h-5 text-gray-600" />
+                <Phone className="w-5 h-5 text-gray-600 cursor-pointer hover:text-purple-500" />
+                <Video className="w-5 h-5 text-gray-600 cursor-pointer hover:text-purple-500" />
+                <Info className="w-5 h-5 text-gray-600 cursor-pointer hover:text-purple-500" />
               </div>
             </div>
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.map((msg, i) => (
-                <div
-                  key={i}
-                  className={`flex ${msg.senderId._id === loggedInUserId ? "justify-end" : "justify-start"
-                    }`}
-                >
+              {messages.map((msg, i) => {
+                const senderId =
+                  typeof msg.senderId === "string"
+                    ? msg.senderId
+                    : msg.senderId._id;
+
+                const isMe = senderId === loggedInUserId;
+
+                return (
                   <div
-                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl shadow-sm ${msg.senderId._id === loggedInUserId
-                        ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
-                        : "bg-gray-100/80 text-gray-800"
-                      }`}
+                    key={i}
+                    className={`flex ${isMe ? "justify-end" : "justify-start"}`}
                   >
-                    <p className="text-sm leading-relaxed">{msg.message}</p>
-                    <p className="text-xs mt-1 text-gray-500">
-                      {new Date(msg.createdAt).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
+                    <div
+                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl shadow-sm ${
+                        isMe
+                          ? "bg-gradient-to-r from-purple-100 to-pink-100 text-gray-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      <p className="text-sm leading-relaxed">{msg.message}</p>
+                      <p className="text-xs mt-1 text-gray-500 text-right">
+                        {new Date(msg.createdAt).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               <div ref={messagesEndRef} />
             </div>
 
@@ -240,7 +297,9 @@ const Messages = () => {
             <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-3">
               Welcome to Connectify
             </h2>
-            <p className="text-gray-600 text-lg mb-2">Start meaningful conversations</p>
+            <p className="text-gray-600 text-lg mb-2">
+              Start meaningful conversations
+            </p>
             <p className="text-gray-400">Select a chat from the sidebar</p>
           </div>
         )}

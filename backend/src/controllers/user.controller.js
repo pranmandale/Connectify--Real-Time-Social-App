@@ -1,5 +1,7 @@
 import User from "../models/user.model.js";
 import uploadOnCloudinary from "../utils/cloudinary.js"
+import Notification from "../models/notification.model.js"
+import { io, getReceiverSocketId } from "../socketIO/Server.js";
 
 
 
@@ -199,8 +201,6 @@ export const editProfile = async (req, res) => {
 };
 
 
-
-
 export const getProfileByParams = async (req, res) => {
   try {
     const userName = req.params.userName;
@@ -228,7 +228,7 @@ export const getProfileByParams = async (req, res) => {
 export const toggleFollow = async (req, res) => {
   try {
     const { targetUserId } = req.body;
-    const currentUserId = req.user._id; // from auth middleware
+    const currentUserId = req.user._id;
 
     if (targetUserId === currentUserId.toString())
       return res.status(400).json({ message: "Cannot follow yourself" });
@@ -251,15 +251,28 @@ export const toggleFollow = async (req, res) => {
       currentUser.following.addToSet(targetUserId);
       targetUser.followers.addToSet(currentUserId);
       action = "followed";
+
+      // 🔔 Create notification only for "follow"
+      const newNotification = await Notification.create({
+        recipient: targetUserId,
+        sender: currentUserId,
+        type: "follow",
+      });
+
+      // 🔔 Emit notification in real-time if target user is online
+      const receiverSocketId = getReceiverSocketId(targetUserId);
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("getNotification", newNotification);
+      }
     }
 
     await currentUser.save();
     await targetUser.save();
 
     return res.json({
-      action, // "followed" or "unfollowed"
-      currentUserFollowing: currentUser.following, // send updated list
-      targetUserFollowers: targetUser.followers,   // send updated list
+      action,
+      currentUserFollowing: currentUser.following,
+      targetUserFollowers: targetUser.followers,
     });
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });

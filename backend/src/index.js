@@ -14,6 +14,7 @@ import storyRouter from "./routes/story.route.js";
 import likeRoute from "./routes/like.route.js";
 import commentRoute from "./routes/comment.route.js";
 import messageRoute from "./routes/message.route.js"
+import notificationRoute from "./routes/notification.route.js"
 
 
 dotenv.config();
@@ -27,6 +28,7 @@ app.use("/api/v1/story", storyRouter);
 app.use("/api/v1/like", likeRoute);
 app.use("/api/v1/comment", commentRoute);
 app.use("/api/v1/message", messageRoute);
+app.use("/api/v1/notifications", notificationRoute)
 
 // start server
 server.listen(PORT, () => {

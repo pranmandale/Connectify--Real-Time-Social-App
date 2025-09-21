@@ -2,6 +2,10 @@ import Comment from "../models/comment.model.js";
 import Post from "../models/post.model.js";
 import Story from "../models/story.model.js";
 // import Reel from "../models/reel.model.js";
+import Notification from "../models/notification.model.js"
+import { io, getReceiverSocketId } from "../socketIO/Server.js";
+
+
 
 const models = { Post, Story /*, Reel */ };
 
@@ -16,11 +20,13 @@ export const addComment = async (req, res) => {
       return res.status(400).json({ message: "Invalid content type" });
     }
 
-    const parentDoc = await models[contentType].findById(contentId);
+    // Get parent document (post, reel, story, etc.)
+    const parentDoc = await models[contentType].findById(contentId).populate("user"); 
     if (!parentDoc) {
       return res.status(404).json({ message: `${contentType} not found` });
     }
 
+    // Create new comment
     const newComment = await Comment.create({
       author: userId,
       commentableId: contentId,
@@ -36,12 +42,29 @@ export const addComment = async (req, res) => {
         populate: { path: "author", select: "name userName profilePicture" },
       });
 
-      
-
     const commentCount = await Comment.countDocuments({
       commentableId: contentId,
       commentableType: contentType,
     });
+
+    // 🔔 Notification logic
+    const postOwnerId = parentDoc.user._id;
+
+    if (postOwnerId.toString() !== userId.toString()) {
+      // 1. Save notification in DB
+      const newNotification = await Notification.create({
+        recipient: postOwnerId,
+        sender: userId,
+        type: "comment",
+        postId: contentId,
+      });
+
+      // 2. Emit real-time notification if post owner is online
+      const receiverSocketId = getReceiverSocketId(postOwnerId);
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("getNotification", newNotification);
+      }
+    }
 
     return res.status(201).json({
       message: `Comment added to ${contentType.toLowerCase()}`,
@@ -50,10 +73,12 @@ export const addComment = async (req, res) => {
     });
   } catch (error) {
     console.error("addComment error:", error);
-    res.status(500).json({ message: "Internal server error", error: error.message });
+    res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
   }
 };
-
 // ---------------------- Reply Comment ----------------------
 export const replyComment = async (req, res) => {
   try {

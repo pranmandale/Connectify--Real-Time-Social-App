@@ -8,6 +8,7 @@ import Profile from "../pages/Profile";
 import EditProfile from "../pages/EditProfile";
 import SearchPage from "../pages/SearchPage";
 import Messages from "../pages/Messages";
+import Notifications from "../pages/Notifications";
 
 const AppRoutes = ({ isAuthenticated }) => {
   return (
@@ -59,6 +60,15 @@ const AppRoutes = ({ isAuthenticated }) => {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute>
+            <Notifications />
+          </ProtectedRoute>
+        }
+      />
+
 
       {/* Catch-all route */}
       <Route path="*" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to="/" />} />

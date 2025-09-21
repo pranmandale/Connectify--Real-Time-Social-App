@@ -1,3 +1,6 @@
+
+
+
 import {
   User,
   LogOut,
@@ -7,19 +10,29 @@ import {
   Film,
   Heart,
   MessageCircle,
+  Sparkles,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../featurres/users/authSlice";
 import { toast } from "react-hot-toast";
-import OtherUser from "../common/OtherUser";
+import { useEffect, useState } from "react";
+
+// 👇 import your socket and notification slice
+import { initSocket } from "../../socket";
+import { addNotification } from "../../featurres/notifications/notificationSlice";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const LeftPart = () => {
   const dispatch = useDispatch();
-   const location = useLocation();
-   const navigate = useNavigate();
-  
-  const { suggestedUsers, profile } = useSelector((state) => state.user);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [activeItem, setActiveItem] = useState("/dashboard");
+
+  const { profile } = useSelector((state) => state.user);
+  const { hasUnread } = useSelector((state) => state.notifications);
+  const { unreadUsers } = useSelector((state) => state.msgNotifications);
+
+  console.log(unreadUsers);
 
   const handleLogout = async () => {
     try {
@@ -34,136 +47,202 @@ const LeftPart = () => {
   };
 
   const handleNavigation = (path) => {
-    navigate(path)
-  }
+    setActiveItem(path);
+    navigate(path);
+  };
 
+  useEffect(() => {
+    setActiveItem(location.pathname);
+  }, [location.pathname]);
 
-  const isActive = (path) => location.pathname === path
+  const isActive = (path) => activeItem === path;
+
+  // 👇 socket integration for real-time notifications
+  useEffect(() => {
+    if (!profile?._id) return;
+
+    const socket = initSocket(profile._id);
+
+    socket.on("getNotification", (notification) => {
+      dispatch(addNotification(notification));
+    });
+
+    return () => {
+      socket.off("getNotification");
+    };
+  }, [dispatch, profile?._id]);
+
+  const navigationItems = [
+    { path: "/dashboard", icon: Home, label: "Home", color: "from-blue-500 to-purple-600" },
+    { path: "/search", icon: Search, label: "Search", color: "from-emerald-500 to-teal-600" },
+    { path: "/create", icon: PlusSquare, label: "Create", color: "from-pink-500 to-rose-600" },
+    { path: "/reels", icon: Film, label: "Reels", color: "from-orange-500 to-red-600" },
+    { path: "/messages", icon: MessageCircle, label: "Messages", color: "from-indigo-500 to-blue-600" },
+    { path: "/notifications", icon: Heart, label: "Notifications", color: "from-purple-500 to-pink-600" },
+    { path: `/profile/${profile?.userName}`, icon: User, label: "Profile", color: "from-violet-500 to-purple-600" },
+  ];
 
   return (
-    <div className="w-[20%] hidden lg:block h-screen bg-white/80 backdrop-blur-sm border-r border-gray-100 p-6 overflow-y-auto scrollbar-hide">
-      {/* Brand */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-          Connectify
-        </h1>
+    <div className="w-[20%] hidden lg:flex flex-col h-screen bg-gradient-to-br from-white/95 via-purple-50/30 to-pink-50/30 backdrop-blur-2xl border-r border-white/40 shadow-2xl overflow-hidden relative">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 -right-10 w-40 h-40 bg-gradient-to-r from-purple-400/10 to-pink-400/10 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute bottom-40 -left-10 w-32 h-32 bg-gradient-to-r from-indigo-400/10 to-purple-400/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/2 right-0 w-24 h-24 bg-gradient-to-r from-pink-400/10 to-red-400/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }}></div>
       </div>
 
-      {/* Navigation */}
-       <nav className="space-y-4">
-          <div
-            onClick={() => handleNavigation("/dashboard")}
-            className={`flex items-center space-x-3 cursor-pointer transition-colors p-2 rounded-lg hover:bg-purple-50 ${
-              isActive("/dashboard") ? "text-purple-600" : "text-gray-600 hover:text-purple-600"
-            }`}
-          >
-            <Home size={24} />
-            <span className="text-lg">Home</span>
-          </div>
-          <div
-            onClick={() => handleNavigation("/search")}
-            className={`flex items-center space-x-3 cursor-pointer transition-colors p-2 rounded-lg hover:bg-purple-50 ${
-              isActive("/search") ? "text-purple-600" : "text-gray-600 hover:text-purple-600"
-            }`}
-          >
-            <Search size={24} />
-            <span className="text-lg">Search</span>
-          </div>
-          <div
-            onClick={() => handleNavigation("/create")}
-            className={`flex items-center space-x-3 cursor-pointer transition-colors p-2 rounded-lg hover:bg-purple-50 ${
-              isActive("/create") ? "text-purple-600" : "text-gray-600 hover:text-purple-600"
-            }`}
-          >
-            <PlusSquare size={24} />
-            <span className="text-lg">Create</span>
-          </div>
-          <div
-            onClick={() => handleNavigation("/reels")}
-            className={`flex items-center space-x-3 cursor-pointer transition-colors p-2 rounded-lg hover:bg-purple-50 ${
-              isActive("/reels") ? "text-purple-600" : "text-gray-600 hover:text-purple-600"
-            }`}
-          >
-            <Film size={24} />
-            <span className="text-lg">Reels</span>
-          </div>
-
-            <div
-            onClick={() => {handleNavigation("/messages")}}
-            className={`flex items-center space-x-3 cursor-pointer transition-colors p-2 rounded-lg hover:bg-purple-50 ${
-              isActive("/messages") ? "text-purple-600" : "text-gray-600 hover:text-purple-600"
-            }`}
-            >
-              <MessageCircle size={24}/>
-            <span className="text-lg">Messages</span>
-
+      <div className="flex-1 p-6 relative z-10 overflow-y-auto scrollbar-hide">
+        {/* Enhanced Brand */}
+        <div className="mb-10 animate-slideInDown">
+          <div className="relative">
+            <h1 className="text-4xl font-black bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent relative">
+              Connectify
+            </h1>
+            <div className="absolute -top-1 -left-1">
+              <Sparkles className="w-6 h-6 text-yellow-400 animate-pulse opacity-80" />
             </div>
-
-
-          <div
-            onClick={() => handleNavigation("/notifications")}
-            className={`flex items-center space-x-3 cursor-pointer transition-colors p-2 rounded-lg hover:bg-purple-50 ${
-              isActive("/notifications") ? "text-purple-600" : "text-gray-600 hover:text-purple-600"
-            }`}
-          >
-            <Heart size={24} />
-            <span className="text-lg">Notifications</span>
-          </div>  
-          <div
-            onClick={() => handleNavigation(`/profile/${profile?.userName}`)}
-            className={`flex items-center space-x-3 cursor-pointer transition-colors p-2 rounded-lg hover:bg-purple-50 ${
-              location.pathname.includes("/profile/") ? "text-purple-600" : "text-gray-600 hover:text-purple-600"
-            }`}
-          >
-            <User size={24} />
-            <span className="text-lg">Profile</span>
           </div>
+          <p className="text-sm text-gray-600 mt-2 font-medium">Connect. Share. Inspire.</p>
+        </div>
+
+        {/* Enhanced Navigation */}
+        <nav className="space-y-2 mb-10">
+          {navigationItems.map((item, index) => {
+            const Icon = item.icon;
+            const isActiveItem = isActive(item.path) || (item.path.includes("/profile/") && activeItem.includes("/profile/"));
+
+            return (
+              <div
+                key={item.path}
+                onClick={() => handleNavigation(item.path)}
+                style={{ animationDelay: `${index * 0.1}s` }}
+                className={`group flex items-center space-x-4 cursor-pointer transition-all duration-300 p-4 rounded-2xl transform hover:scale-105 animate-slideInLeft relative overflow-hidden ${isActiveItem
+                  ? `bg-gradient-to-r ${item.color} text-white shadow-2xl`
+                  : "text-gray-600 hover:text-purple-600 hover:bg-white/60 backdrop-blur-sm border border-transparent hover:border-white/40 hover:shadow-lg"
+                  }`}
+              >
+                {/* Active background effect */}
+                {isActiveItem && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-50"></div>
+                )}
+
+                <div className="relative z-10 flex items-center space-x-4 w-full">
+                  <div className="relative">
+                    <Icon size={24} className={`transition-all duration-300 ${isActiveItem ? 'drop-shadow-sm' : 'group-hover:scale-110'}`} />
+
+                    {/* Notifications Badge */}
+                    {item.label === "Notifications" && hasUnread && (
+                      <>
+                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-400 rounded-full animate-ping opacity-75"></span>
+                      </>
+                    )}
+
+                    {/* Messages Badge - Enhanced with count */}
+                    {item.label === "Messages" && unreadUsers.length > 0 && (
+                      <span className="absolute -top-2 -right-2 min-w-[20px] h-5 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center text-xs text-white font-bold border-2 border-white animate-pulse shadow-lg">
+                        {unreadUsers.length > 99 ? '99+' : unreadUsers.length}
+                      </span>
+                    )}
+
+                  </div>
+                  <span className="text-lg font-semibold">{item.label}</span>
+                </div>
+
+                {/* Hover effect indicator */}
+                <div className={`absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-b ${item.color} transform transition-all duration-300 ${isActiveItem ? 'scale-y-100' : 'scale-y-0 group-hover:scale-y-100'
+                  } origin-center rounded-l-full`}></div>
+              </div>
+            );
+          })}
         </nav>
-
-      {/* Suggested Users */}
-      <div className="mt-10">
-        <div className="flex items-center justify-between mb-4">
-          <h4 className="text-gray-600 font-medium">Suggested for you</h4>
-          <button className="text-sm text-gray-800 hover:text-purple-600 transition-colors">
-            See All
-          </button>
-        </div>
-
-        <div className="space-y-3">
-          {/* {console.log(profile?.following)} */}
-          {suggestedUsers?.length > 0 ? (
-            
-            suggestedUsers.slice(0, 3).map((user) => <OtherUser key={user._id} user={user}  />)
-          ) : (
-            <p className="text-gray-500 text-sm">No suggestions available</p>
-          )}
-        </div>
       </div>
 
-      {/* Logout */}
-      <div className="mt-8 pt-4 border-t border-gray-200">
+      {/* Enhanced Logout */}
+      <div className="p-6 border-t border-white/30 bg-white/30 backdrop-blur-xl relative z-10 animate-slideInUp">
         <button
           onClick={handleLogout}
-          className="flex items-center space-x-3 text-gray-600 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-50 w-full"
+          className="group flex items-center space-x-4 text-gray-600 hover:text-red-500 transition-all duration-300 p-4 rounded-2xl hover:bg-red-50/80 backdrop-blur-sm w-full border border-transparent hover:border-red-200/50 hover:shadow-lg transform hover:scale-105"
         >
-          <LogOut size={24} />
-          <span className="text-lg">Logout</span>
+          <LogOut size={24} className="transition-transform duration-300 group-hover:scale-110" />
+          <span className="text-lg font-semibold">Logout</span>
+
+          {/* Logout hover indicator */}
+          <div className="absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-b from-red-400 to-red-600 transform transition-all duration-300 scale-y-0 group-hover:scale-y-100 origin-center rounded-l-full"></div>
         </button>
       </div>
+
+      {/* Custom styles for animations */}
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-15px);
+          }
+        }
+        
+        @keyframes slideInDown {
+          from {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes slideInLeft {
+          from {
+            opacity: 0;
+            transform: translateX(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        
+        @keyframes slideInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+        
+        .animate-slideInDown {
+          animation: slideInDown 0.6s ease-out;
+        }
+        
+        .animate-slideInLeft {
+          animation: slideInLeft 0.5s ease-out forwards;
+        }
+        
+        .animate-slideInUp {
+          animation: slideInUp 0.6s ease-out;
+        }
+        
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </div>
   );
 };
-
-const NavItem = ({ icon, label, active }) => (
-  <div
-    className={`flex items-center space-x-3 cursor-pointer transition-colors p-2 rounded-lg ${active
-        ? "text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-        : "text-gray-600 hover:text-purple-600 hover:bg-purple-50"
-      }`}
-  >
-    {icon}
-    <span className="text-lg">{label}</span>
-  </div>
-);
 
 export default LeftPart;

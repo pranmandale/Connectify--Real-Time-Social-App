@@ -336,4 +336,4 @@ const PostCard = ({ post, currentUserId, profile }) => {
   )
 }
 
-export default Feed
+export default Feed;
