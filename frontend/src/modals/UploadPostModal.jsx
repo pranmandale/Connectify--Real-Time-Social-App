@@ -5,11 +5,13 @@ import { X, Upload, ImageIcon, Video, Loader2 } from "lucide-react"
 import { useDispatch, useSelector } from "react-redux"
 import { uploadPost } from "../featurres/post/postSlice.jsx"
 import { toast } from "react-hot-toast"
+import { usePostUpload } from "../hooks/managePosts/postHook.js"
 
 const UploadPostModal = ({ isOpen, onClose }) => {
     const dispatch = useDispatch()
     const { loading } = useSelector((state) => state.post)
     const { profile } = useSelector((state) => state.user)
+    const mutation = usePostUpload();
 
     const [formData, setFormData] = useState({
         title: "",
@@ -42,7 +44,7 @@ const UploadPostModal = ({ isOpen, onClose }) => {
         setSelectedFiles((prev) => prev.filter((_, i) => i !== index))
     }
 
-   
+
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -72,13 +74,14 @@ const UploadPostModal = ({ isOpen, onClose }) => {
             uploadFormData.append("media", item.file)
         })
 
+
         try {
             await toast.promise(
-                dispatch(uploadPost(uploadFormData)).unwrap(),
+                mutation.mutateAsync(formData),
                 {
                     loading: "Uploading post...",
-                    success: (res) => res?.message || "Post uploaded successfully",
-                    error: (err) => err?.message || err?.error || "Failed to upload post",
+                    success: "Post uploaded successfully 🎉",
+                    error: "Failed to upload post",
                 }
             )
             handleClose()

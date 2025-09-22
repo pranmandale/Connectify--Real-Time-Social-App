@@ -21,7 +21,7 @@ export const addComment = async (req, res) => {
     }
 
     // Get parent document (post, reel, story, etc.)
-    const parentDoc = await models[contentType].findById(contentId).populate("user"); 
+    const parentDoc = await models[contentType].findById(contentId).populate("author", "name userName profilePicture"); 
     if (!parentDoc) {
       return res.status(404).json({ message: `${contentType} not found` });
     }
@@ -48,7 +48,7 @@ export const addComment = async (req, res) => {
     });
 
     // 🔔 Notification logic
-    const postOwnerId = parentDoc.user._id;
+    const postOwnerId = parentDoc.author._id;
 
     if (postOwnerId.toString() !== userId.toString()) {
       // 1. Save notification in DB

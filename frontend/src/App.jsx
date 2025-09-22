@@ -83,10 +83,6 @@ useEffect(() => {
 
 
 
-
-
-
-
   if (!isInitialized || !isAppReady) {
     return (
       <div className="h-screen text-3xl flex justify-center items-center">
