@@ -148,9 +148,12 @@ const Profile = () => {
   const { profileByParams, loading, error, profile } = useSelector(
     (state) => state.user
   )
+
+  console.log(profile.followers)
+
   const { posts } = useSelector((state) => state.post)
 
-  console.log(profile);
+  
 
   // for fetching followes and following users
   const { followersList, followingList } = useSelector(state => state.follow);

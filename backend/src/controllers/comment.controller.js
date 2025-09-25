@@ -4,20 +4,21 @@ import Story from "../models/story.model.js";
 // import Reel from "../models/reel.model.js";
 import Notification from "../models/notification.model.js"
 import { io, getReceiverSocketId } from "../socketIO/Server.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import ApiError from "../utils/ApiError.js";
 
 
 
 const models = { Post, Story /*, Reel */ };
 
 // ---------------------- Add Comment ----------------------
-export const addComment = async (req, res) => {
-  try {
+export const addComment = asyncHandler( async(req, res) => {
     const userId = req.user._id;
     const { contentType, contentId } = req.params;
     const { content } = req.body;
 
     if (!models[contentType]) {
-      return res.status(400).json({ message: "Invalid content type" });
+      throw new ApiError(400 , "Invalid content type" );
     }
 
     // Get parent document (post, reel, story, etc.)
@@ -71,24 +72,16 @@ export const addComment = async (req, res) => {
       comment: populatedComment,
       commentCount,
     });
-  } catch (error) {
-    console.error("addComment error:", error);
-    res.status(500).json({
-      message: "Internal server error",
-      error: error.message,
-    });
-  }
-};
+});
 // ---------------------- Reply Comment ----------------------
-export const replyComment = async (req, res) => {
-  try {
+export const replyComment = asyncHandler( async(req, res) => {
     const userId = req.user._id;
     const { commentId } = req.params;
     const { content } = req.body;
 
     const parentComment = await Comment.findById(commentId);
     if (!parentComment) {
-      return res.status(404).json({ message: "Parent comment not found" });
+      throw new ApiError(404, "Parent comment not found" );
     }
 
     const reply = await Comment.create({
@@ -116,30 +109,25 @@ export const replyComment = async (req, res) => {
       reply: populatedReply,
       commentCount,
     });
-  } catch (error) {
-    console.error("replyComment error:", error);
-    res.status(500).json({ message: "Internal server error", error: error.message });
-  }
-};
+});
 
 // ---------------------- Delete Comment ----------------------
-export const deleteComment = async (req, res) => {
-  try {
+export const deleteComment = asyncHandler( async(req, res) => {
     const userId = req.user._id;
     const { commentId } = req.params;
 
     const comment = await Comment.findById(commentId);
-    if (!comment) return res.status(404).json({ message: "Comment not found" });
+    if (!comment) throw new ApiError(404, "Comment not found");
 
     const parentDoc = await models[comment.commentableType].findById(comment.commentableId);
-    if (!parentDoc) return res.status(404).json({ message: "Parent content not found" });
+    if (!parentDoc) throw new ApiError(404, "Parent content not found" );
 
     // Only comment author OR content author can delete
     if (
       comment.author.toString() !== userId.toString() &&
       parentDoc.author.toString() !== userId.toString()
     ) {
-      return res.status(403).json({ message: "Not authorized to delete this comment" });
+      throw new ApiError(403, "Not authorized to delete this comment" );
     }
 
     // Recursive deletion
@@ -162,15 +150,10 @@ export const deleteComment = async (req, res) => {
       message: "Comment and its replies deleted successfully",
       commentCount,
     });
-  } catch (error) {
-    console.error("deleteComment error:", error);
-    res.status(500).json({ message: "Internal server error", error: error.message });
-  }
-};
+});
 
 // ---------------------- Get Comments ----------------------
-export const getComments = async (req, res) => {
-  try {
+export const getComments = asyncHandler( async(req, res) => {
     const { contentType, contentId } = req.params;
 
     const topLevelComments = await Comment.find({
@@ -199,8 +182,4 @@ export const getComments = async (req, res) => {
       commentCount,
       comments: topLevelComments,
     });
-  } catch (error) {
-    console.error("getComments error:", error);
-    res.status(500).json({ message: "Internal server error", error: error.message });
-  }
-};
+});

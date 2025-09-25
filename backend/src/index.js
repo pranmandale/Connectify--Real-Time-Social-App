@@ -1,6 +1,7 @@
 
 import dotenv from "dotenv"
 import connectDB from "./db/connection.js"
+import errorHandler from "./middlewares/errorhandler.js";
 
 
 // import app + server from app.js
@@ -29,6 +30,9 @@ app.use("/api/v1/like", likeRoute);
 app.use("/api/v1/comment", commentRoute);
 app.use("/api/v1/message", messageRoute);
 app.use("/api/v1/notifications", notificationRoute)
+
+// error handling middleware
+app.use(errorHandler);
 
 // start server
 server.listen(PORT, () => {

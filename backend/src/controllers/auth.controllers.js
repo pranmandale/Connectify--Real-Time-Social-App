@@ -1,15 +1,17 @@
 import User from "../models/user.model.js"
 import sendMail from "../utils/Mail.js";
 import {generateOtpHtml} from "../utils/OtpTemplate.js"
+import asyncHandler from "../utils/asyncHandler.js";
+import ApiError from "../utils/ApiError.js"
 
 
 
-export const signUp = async (req, res) => {
-    try {
+export const signUp = asyncHandler( async (req, res) => {
+   
         const { name, userName, email, phone, password } = req.body;
 
         if (!name || !userName || !email || !phone || !password) {
-            return res.status(400).json({ message: "All fields are required" });
+            throw new ApiError(400, "All fields are required" );
         }
 
         // Check if any user already exists with email, username, or phone
@@ -22,7 +24,7 @@ export const signUp = async (req, res) => {
         });
 
         if (existingUser) {
-            return res.status(400).json({ message: "User already exists, please login" });
+            throw new ApiError(400, "User already exists, please login");
         }
 
         const newUser = await User.create({ name, userName, email, phone, password });
@@ -42,24 +44,15 @@ export const signUp = async (req, res) => {
             message: "User created successfully",
             accessToken,
         });
+    
+});
 
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({
-            message: "Internal server error",
-            error: error.message,
-        });
-    }
-};
-
-export const login = async (req, res) => {
-    try{
+export const login =  asyncHandler (async(req, res) => {
+    
         const {identifier, password} = req.body;
 
         if(!identifier || !password) {
-            return res.status(400).json({
-                message: "all fields are required"
-            })
+            throw new ApiError(400,"all fields are required")
         }
 
         const user = await User.findOne({
@@ -74,20 +67,17 @@ export const login = async (req, res) => {
         })
 
         if(!user) {
-            return res.status(400).json({
-                message: "invalid credentials"
-            })
+            throw new ApiError(400, "invalid credentials")
         }
 
         const isPasswordMatch = await user.comparePassword(password);
         if(!isPasswordMatch) {
-            return res.status(400).json({
-                message: "user not found!!"
-            })
+            throw new ApiError(400,"user not found!!")
         }
 
          const accessToken = await user.generateToken();
         const refreshToken = await user.generateRefreshToken();
+
 
 
         res.cookie("refreshToken", refreshToken, {
@@ -101,15 +91,10 @@ export const login = async (req, res) => {
             message:" login successful",
             accessToken
         })
-    } catch(error) {
-        return res.status(500).json({
-            message: "Internal server error during login"
-        })
-    }
-}
+})
 
-export const logout = async (req, res) => {
-    try {
+export const logout = asyncHandler( async(req, res) => {
+  
         res.clearCookie("refreshToken", {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
@@ -119,32 +104,21 @@ export const logout = async (req, res) => {
         return res.status(200).json({
             message: "Logout successful"
         });
-    } catch (error) {
-        console.error(error); // log error to see what went wrong
-        return res.status(500).json({
-            message: "Internal server error",
-            error: error.message
-        });
-    }
-};
+    
+});
 
-export const refreshToken = async (req, res) => {
-  try {
+export const refreshToken = asyncHandler( async(req, res) => {
+
     const token = req.cookies?.refreshToken;
 
     if (!token) {
-      return res.status(200).json({
-        accessToken: null,
-        message: "No refresh token provided",
-      });
+      accessToken = null;
+      throw new ApiError(200, "No refresh token provided")  
     }
 
     const user = await User.findByRefreshToken(token);
     if (!user) {
-      return res.status(200).json({
-        accessToken: null,
-        message: "User not found or token invalid",
-      });
+      throw new ApiError(200, "User not found or token invalid");
     }
 
     const accessToken = await user.generateToken();
@@ -152,22 +126,15 @@ export const refreshToken = async (req, res) => {
     return res.status(200).json({
       accessToken,
     });
-  } catch (error) {
-    // console.error("Refresh token error:", error); // Log server-side
-    return res.status(500).json({
-      accessToken: null,
-      message: "Internal server error",
-    });
-  }
-};
+});
 
 
-export const sendOtp = async (req, res) => {
-  try {
+export const sendOtp = asyncHandler( async (req, res) => {
+
     const { email } = req.body;
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(200).json({ message: "user not found" });
+      throw new ApiError(200, "user not found" );
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -188,30 +155,25 @@ export const sendOtp = async (req, res) => {
     return res.status(200).json({ message: "OTP sent successfully" });
 
     
-  } catch (error) {
-    return res.status(400).json({
-      message: "server error",
-      error,
-    });
-  }
-};
+ 
+});
 
-export const verifyOtp = async (req, res) => {
-  try {
+export const verifyOtp = asyncHandler( async(req, res) => {
+ 
     const { email, otp } = req.body;
 
     if (!email || !otp) {
-      return res.status(400).json({ message: "Email and OTP are required" });
+      throw new ApiError(400, "Email and OTP are required" );
     }
 
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(400).json({ message: "User not exist" });
+      throw new ApiError(400, "User not exist");
     }
 
     if (user.resetOtp !== otp || user.otpExpire < Date.now()) {
-      return res.status(400).json({ message: "Invalid or expired OTP" });
+      throw new ApiError(400, "Invalid or expired OTP");
     }
 
     user.isVerified = true;
@@ -220,24 +182,19 @@ export const verifyOtp = async (req, res) => {
     await user.save();
 
     return res.status(200).json({ message: "OTP verified successfully" });
-  } catch (error) {
-    console.error("❌ OTP verification error:", error); // 👈 see real error
-    return res.status(500).json({ message: "Server error", error: error.message });
-  }
-};
+});
 
 
-export const resetPassword = async (req, res) => {
-  try {
+export const resetPassword = asyncHandler( async(req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(400).json({ message: "User not exist" });
+      throw new ApiError(400).json({ message: "User not exist" });
     }
 
     if (!user.isVerified) {
-      return res.status(400).json({ message: "User is not verified" });
+      throw new ApiError(400).json({ message: "User is not verified" });
     }
 
     user.password = password;
@@ -245,10 +202,7 @@ export const resetPassword = async (req, res) => {
     await user.save();
 
     return res.status(200).json({ message: "Password updated successfully" });
-  } catch (error) {
-    return res.status(500).json({ message: "Server error", error });
-  }
-};
+});
 
 
 

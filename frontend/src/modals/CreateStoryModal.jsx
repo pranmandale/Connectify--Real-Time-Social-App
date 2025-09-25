@@ -10,7 +10,7 @@ import toast from "react-hot-toast"
 const CreateStoryModal = ({ isOpen, onClose }) => {
   const dispatch = useDispatch()
   const { profile } = useSelector((state) => state.user);
-  console.log(profile)
+  // console.log(profile)
   const [loading, setLoading] = useState(false)
 
   const [storyData, setStoryData] = useState({
@@ -78,7 +78,7 @@ const CreateStoryModal = ({ isOpen, onClose }) => {
       formData.append("textPositionX", storyData.textPosition.x)
       formData.append("textPositionY", storyData.textPosition.y)
 
-      console.log("Story data:", Object.fromEntries(formData))
+      // console.log("Story data:", Object.fromEntries(formData))
       // await new Promise((resolve) => setTimeout(resolve, 1500))
 
 

@@ -2,15 +2,16 @@ import Like from "../models/like.model.js"
 import User from "../models/user.model.js"
 import Post from "../models/post.model.js"
 import Story from "../models/story.model.js"
+import asyncHandler from "../utils/asyncHandler.js"
+import ApiError from "../utils/ApiError.js"
 
-export const likePost = async (req, res) => {
-  try {
+export const likePost = asyncHandler( async(req, res) => {
     const userId = req.user._id;
     const postId = req.params.postId;
 
     const post = await Post.findById(postId);
     if (!post) {
-      return res.status(400).message({ message: "No post found" });
+      throw new ApiError(400).message({ message: "No post found" });
     }
 
     const existingLike = await Like.findOne({
@@ -39,48 +40,21 @@ export const likePost = async (req, res) => {
 
     return res.status(200).json({ message: "Post liked successfully", like });
 
-
-  } catch (error) {
-    return res.status(400).json({
-      message: "internal server error",
-      error
-    })
-  }
-}
+})
 
 
-// export const getPostLikes = async (req, res) => {
-//   try {
-//     const postId = req.params.postId;
 
-//     const likes = await Like.find({
-//       likeableId: postId,
-//       likeableType: "Post"
-//     }).populate("author", "name userName profilePicture");
-
-//     return res.status(200).json({
-//       message: "Likes fetched successfully",
-//       likes
-//     });
-//   } catch (error) {
-//     return res.status(500).json({
-//       message: "Internal server error",
-//       error: error.message
-//     });
-//   }
-// };
 
 
 // Get all users who liked a specific post
 
-export const getUsersWhoLikedPost = async (req, res) => {
-  try {
+export const getUsersWhoLikedPost = asyncHandler( async(req, res) => {
     const postId = req.params.postId;
 
     // Check if post exists
     const post = await Post.findById(postId);
     if (!post) {
-      return res.status(404).json({ message: "Post not found" });
+      throw new ApiError(404).json({ message: "Post not found" });
     }
 
     // Find all likes for this post and populate the user info
@@ -97,24 +71,16 @@ export const getUsersWhoLikedPost = async (req, res) => {
       users,
       totalLikes: users.length
     });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      message: "Internal server error",
-      error: error.message
-    });
-  }
-};
+});
 
 
-export const likeStory = async (req, res) => {
-  try {
+export const likeStory = asyncHandler( async(req, res) => {
     const userId = req.user._id;
     const storyId = req.params.storyId;
 
     const story = await Story.findById(storyId);
     if (!story) {
-      return res.status(400).json({ message: "story not found" });
+      throw new ApiError(400, "story not found" );
     }
 
     const existingLike = await Like.findOne({
@@ -142,24 +108,13 @@ export const likeStory = async (req, res) => {
     await story.save();
 
     return res.status(201).json({message : "Story liked successfully"});
+})
 
-
-
-  } catch (error) {
-    console.log(error)
-    return res.status(400).json({
-      message: "internal server error",
-      error
-    })
-  }
-}
-
-export const getUserWhoLikedStory = async (req, res) => {
-  try {
+export const getUserWhoLikedStory = asyncHandler( async(req, res) => {
     const storyId = req.params.storyId;
     const story = await Story.findById(storyId);
     if(!story) {
-      return res.status(400).json({message : "story not found"});
+      throw new ApiError(400,"story not found");
     }
 
     const likes = await Like.find({
@@ -174,14 +129,6 @@ export const getUserWhoLikedStory = async (req, res) => {
       users,
       totalLikes: users.length
     });
-
-  } catch(error) {
-    console.log(error)
-    return res.status(400).json({
-      message: "internal server error",
-      error
-    })
-  }
-}
+})
 
 

@@ -1,7 +1,9 @@
 import Notification from "../models/notification.model.js"
+import asyncHandler from "../utils/asyncHandler.js"
+import ApiError from "../utils/ApiError.js"
 
-export const getNotifications = async (req, res) => {
-  try {
+export const getNotifications = asyncHandler( async(req, res) => {
+
     const userId = req.user._id;
 
     const notifications = await Notification.find({ recipient: userId })
@@ -12,18 +14,11 @@ export const getNotifications = async (req, res) => {
       message: "Notifications fetched successfully",
       notifications,
     });
-  } catch (error) {
-    return res.status(500).json({
-      message: "Internal server error",
-      error: error.message,
-    });
-  }
-};
+});
 
 
 
-export const readNotifications = async (req, res) => {
-  try {
+export const readNotifications = asyncHandler( async(req, res) => {
     const userId = req.user._id;
 
     await Notification.updateMany(
@@ -34,10 +29,5 @@ export const readNotifications = async (req, res) => {
     return res.status(200).json({
       message: "All notifications marked as read",
     });
-  } catch (error) {
-    return res.status(500).json({
-      message: "Internal server error",
-      error: error.message,
-    });
-  }
-};
+ 
+});

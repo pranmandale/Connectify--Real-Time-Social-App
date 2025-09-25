@@ -90,17 +90,6 @@ const Messages = () => {
     }
   };
 
-  // Selecting a chat user
-  // const handleSelectUser = (user) => {
-  //   setSelectedUser(user);
-  //   const roomId = [loggedInUserId, user._id].sort().join("_");
-  //   dispatch(setCurrentRoom(roomId));
-  //   dispatch(fetchMessages(roomId));
-  //   dispatch(markMessagesAsRead({ roomId }));
-
-  //   const socket = getSocket();
-  //   socket?.emit("joinRoom", roomId);
-  // };
 
 
   const handleSelectUser = (user) => {

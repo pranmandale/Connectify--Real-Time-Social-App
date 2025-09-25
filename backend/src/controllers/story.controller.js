@@ -3,9 +3,10 @@ import Like from "../models/like.model.js";
 import Story from "../models/story.model.js";
 import User from "../models/user.model.js";
 import uploadOnCloudinary from "../utils/cloudinary.js";
+import asyncHandler from "../utils/asyncHandler.js"
+import ApiError from "../utils/ApiError.js"
 
-export const uploadStory = async (req, res) => {
-    try {
+export const uploadStory = asyncHandler( async(req, res) => {
         const {
             text,
             backgroundColor,
@@ -17,7 +18,7 @@ export const uploadStory = async (req, res) => {
 
         const user = req.user;
         if (!user) {
-            return res.status(401).json({ message: "Unauthorized" });
+            throw new ApiError(401, "Unauthorized" );
         }
 
         let mediaType = "text"; // default
@@ -37,9 +38,7 @@ export const uploadStory = async (req, res) => {
         else if (text?.trim()) {
             mediaType = "text"; // text-only story
         } else {
-            return res.status(400).json({
-                message: "Story must contain either media or text",
-            });
+            throw new ApiError(400,"Story must contain either media or text");
         }
 
         // ✅ Create story
@@ -70,20 +69,12 @@ export const uploadStory = async (req, res) => {
             message: "Story created successfully",
             story: populatedStory,
         });
-    } catch (error) {
-        console.error("❌ Error creating story:", error);
-        return res.status(500).json({
-            message: "Internal server error",
-            error: error.message,
-        });
-    }
-};
+});
 
-export const getAllStories = async (req, res) => {
-    try {
+export const getAllStories = asyncHandler( async(req, res) => {
         const user = req.user;
         if (!user) {
-            return res.status(401).json({ message: "Unauthorized" });
+            throw new ApiError(401,"Unauthorized" );
         }
 
         // ✅ Get the logged-in user with their following list
@@ -104,22 +95,14 @@ export const getAllStories = async (req, res) => {
             message: "Stories fetched successfully",
             stories,
         });
-    } catch (error) {
-        console.error("❌ Error fetching stories:", error);
-        return res.status(500).json({
-            message: "Internal server error",
-            error: error.message,
-        });
-    }
-};
+});
 
 
-export const getStoryById = async (req, res) => {
-    try {
+export const getStoryById = asyncHandler( async(req, res) => {
         const storyId = req.params.storyId;
         const user = req.user;
         if (!user) {
-            return res.status(400).json({ message: "unauthorized" })
+            throw new ApiError(400, "unauthorized" )
         }
         const story = await Story.findById(storyId)
             .populate("author", "name userName profilePicture")
@@ -141,21 +124,13 @@ export const getStoryById = async (req, res) => {
             story
         })
 
-
-    } catch (error) {
-        console.error("❌ Error creating story:", error);
-        return res.status(500).json({
-            message: "Internal server error",
-            error: error.message,
-        });
-    }
-}
+})
 
 // GET /story/user/:userId
 
 // get only story above route is for get the story info like when that story created who liked who commented
-export const getUserStories = async (req, res) => {
-    try {
+export const getUserStories = asyncHandler( async(req, res) => {
+    
         const { userId } = req.params;
         const stories = await Story.find({
             author: userId,
@@ -165,19 +140,16 @@ export const getUserStories = async (req, res) => {
             .populate("author", "name userName profilePicture"); // ✅ populate author here
 
         return res.status(200).json({ stories });
-    } catch (err) {
-        return res.status(500).json({ message: "Internal server error", error: err.message });
-    }
-};
+});
 
 
 
-export const deleteStory = async (req, res) => {
-  try {
+export const deleteStory = asyncHandler( async(req, res) => {
+
     const storyId = req.params.storyId;
     const story = await Story.findById(storyId);
     if (!story) {
-      return res.status(404).json({ message: "Story not found" });
+      throw new ApiError(404, "Story not found" );
     }
 
     console.log("Story author:", story.author);
@@ -185,7 +157,7 @@ export const deleteStory = async (req, res) => {
 
     // ✅ Use .equals() for ObjectId comparison
     if (!story.author.equals(req.user._id)) {
-      return res.status(403).json({ message: "Unauthorized: you cannot delete this story" });
+      throw new ApiError(403, "Unauthorized: you cannot delete this story" );
     }
 
     await Promise.all([
@@ -196,20 +168,12 @@ export const deleteStory = async (req, res) => {
     ]);
 
     return res.status(200).json({ message: "Story deleted successfully" });
-  } catch (error) {
-    console.error("❌ Error deleting story:", error);
-    return res.status(500).json({
-      message: "Internal server error",
-      error: error.message,
-    });
-  }
-};
+});
 
 // PUT /story/view/:storyId
-export const markStoryViewed = async (req, res) => {
-    try {
+export const markStoryViewed = asyncHandler( async(req, res) => {
         const story = await Story.findById(req.params.storyId);
-        if (!story) return res.status(404).json({ message: "Story not found" });
+        if (!story) throw new ApiError(404, "Story not found" );
 
         if (!story.viewedBy.includes(req.user._id)) {
             story.viewedBy.push(req.user._id);
@@ -217,8 +181,5 @@ export const markStoryViewed = async (req, res) => {
         }
 
         return res.status(200).json({ message: "Story marked as viewed" });
-    } catch (err) {
-        return res.status(500).json({ message: "Internal server error", error: err.message });
-    }
-};
+});
 

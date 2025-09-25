@@ -1,12 +1,13 @@
 import Message from "../models/message.model.js";
+import asyncHandler from "../utils/asyncHandler.js"
+import ApiError from "../utils/ApiError.js"
 
 /**
  * Get all messages in a room
  * - Sorted from oldest to newest
  * - Populates sender info (username, profilePicture)
  */
-export const getMessage = async (req, res) => {
-  try {
+export const getMessage = asyncHandler( async(req, res) => {
     const { roomId } = req.params;
 
     const messages = await Message.find({ roomId })
@@ -18,13 +19,7 @@ export const getMessage = async (req, res) => {
       message: "Messages fetched successfully",
       messages,
     });
-  } catch (error) {
-    return res.status(500).json({
-      message: "Failed to fetch messages",
-      error: error.message,
-    });
-  }
-};
+});
 
 /**
  * Send a message
@@ -32,8 +27,8 @@ export const getMessage = async (req, res) => {
  * - Returns the saved message
  * - For real-time delivery, Socket.IO should be used alongside
  */
-export const sendMessage = async (req, res) => {
-  try {
+export const sendMessage = asyncHandler( async(req, res) => {
+
     const { senderId, roomId, message } = req.body;
 
 
@@ -44,20 +39,15 @@ export const sendMessage = async (req, res) => {
       message: "Message sent successfully",
       newMessage,
     });
-  } catch (error) {
-    return res.status(500).json({
-      message: "Failed to send message",
-      error: error.message,
-    });
-  }
-};
+ 
+});
 
 /**
  * Mark all messages in a room as read
  * - Useful when user opens a chat
  */
-export const markAsRead = async (req, res) => {
-  try {
+export const markAsRead = asyncHandler( async(req, res) => {
+
     const { roomId } = req.body;
 
     const result = await Message.updateMany(
@@ -69,10 +59,4 @@ export const markAsRead = async (req, res) => {
       message: "Messages marked as read successfully",
       result,
     });
-  } catch (error) {
-    return res.status(500).json({
-      message: "Internal server error",
-      error: error.message,
-    });
-  }
-};
+});

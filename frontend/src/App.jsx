@@ -10,6 +10,7 @@ import { initSocket } from './socket';
 import { addNotificationMsg } from './featurres/msgNotifications/msgNotiSlice';
 
 
+
 const App = () => {
   const { isAuthenticated, isInitialized } = useSelector(state => state.auth);
   const dispatch = useDispatch();

@@ -1,6 +1,3 @@
-
-
-
 import {
   User,
   LogOut,
@@ -32,7 +29,7 @@ const LeftPart = () => {
   const { hasUnread } = useSelector((state) => state.notifications);
   const { unreadUsers } = useSelector((state) => state.msgNotifications);
 
-  console.log(unreadUsers);
+  // console.log(unreadUsers);
 
   const handleLogout = async () => {
     try {

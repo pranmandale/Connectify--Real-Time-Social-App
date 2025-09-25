@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import Message from "../models/message.model.js";
 
+
 const app = express();
 const server = http.createServer(app); // Wrap Express in HTTP server
 
@@ -16,6 +17,8 @@ app.use(cors({
 }));
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
+
+
 
 // ------------------ SOCKET.IO SETUP ------------------
 const io = new Server(server, {
@@ -152,12 +155,14 @@ io.on("connection", (socket) => {
   socket.on("chatMessage", async ({ roomId, senderId, message, receiverId }) => {
   if (!roomId || !senderId || !message) return;
 
+  
+
   try {
     const newMessage = await Message.create({ senderId, roomId, message });
 
     // populate senderId so frontend gets { _id, userName, ... }
     const populatedMessage = await newMessage.populate("senderId", "_id userName");
-    console.log(populatedMessage)
+   
 
     // Emit message to everyone in the room
     io.to(roomId).emit("chatMessage", populatedMessage);
@@ -195,11 +200,6 @@ io.on("connection", (socket) => {
     }
   });
 });
-
-
-
-
-
 
 // ------------------ EXPORTS ------------------
 export { app, server, io };

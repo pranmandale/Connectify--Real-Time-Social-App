@@ -1,11 +1,11 @@
 import express from "express"
-import { editProfile, fetechProfile, getFollowers, getFollowing, getProfileByParams, suggestedUsers, toggleFollow } from "../controllers/user.controller.js";
+import { editProfile, fetchProfile, getFollowers, getFollowing, getProfileByParams, suggestedUsers, toggleFollow } from "../controllers/user.controller.js";
 import { authenticate } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.js";
 
 const userRoute = express.Router();
 
-userRoute.get('/profile', authenticate ,fetechProfile);
+userRoute.get('/profile', authenticate ,fetchProfile);
 userRoute.get('/suggested-users', authenticate, suggestedUsers);
 userRoute.put('/edit-profile', authenticate,upload.single("profilePicture"), editProfile);
 userRoute.get('/get-profile/:userName',authenticate, getProfileByParams);

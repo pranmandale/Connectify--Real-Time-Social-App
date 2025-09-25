@@ -11,35 +11,6 @@ const RightPart = () => {
   const { profile, suggestedUsers } = useSelector((state) => state.user)
 
 
-  const conversations = [
-    {
-      id: 1,
-      name: "john_doe",
-      avatar: "/diverse-user-avatars.png",
-      lastMessage: "Hey! How are you doing?",
-      time: "2m",
-      isOnline: true,
-      unread: 2,
-    },
-    {
-      id: 2,
-      name: "jane_smith",
-      avatar: "/diverse-user-avatars.png",
-      lastMessage: "Thanks for the photo!",
-      time: "1h",
-      isOnline: false,
-      unread: 0,
-    },
-    {
-      id: 3,
-      name: "mike_wilson",
-      avatar: "/diverse-user-avatars.png",
-      lastMessage: "See you tomorrow 👋",
-      time: "3h",
-      isOnline: true,
-      unread: 0,
-    },
-  ]
 
   // const suggestedUsers = [
   //   { id: 1, name: "sarah_jones", avatar: "/diverse-user-avatars.png", mutualFriends: 5 },
@@ -66,55 +37,6 @@ const RightPart = () => {
           <p className="text-gray-500 text-sm">No suggestions available</p>
         )}
       </div>
-
-      {/* Search */}
-      {/* <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-        <input
-          type="text"
-          placeholder="Search messages..."
-          className="w-full bg-gray-100 text-gray-800 placeholder-gray-500 rounded-lg pl-10 pr-4 py-3 outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all"
-        />
-      </div> */}
-
-      {/* Messages List with fixed height */}
-      {/* <div className="flex-1 overflow-y-auto mb-4 scrollbar-hide">
-        <h3 className="text-gray-600 font-medium mb-2">Recent</h3>
-        <div className="space-y-3">
-          {conversations.map((conversation) => (
-            <div
-              key={conversation.id}
-              className="flex items-center space-x-3 p-3 rounded-lg hover:bg-purple-50 cursor-pointer transition-colors"
-            >
-              <div className="relative">
-                <img
-                  src={conversation.avatar || "/placeholder.svg"}
-                  alt={conversation.name}
-                  className="w-12 h-12 rounded-full"
-                />
-                {conversation.isOnline && (
-                  <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
-                )}
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <p className="text-gray-800 font-medium truncate">{conversation.name}</p>
-                  <span className="text-gray-500 text-xs">{conversation.time}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-gray-600 text-sm truncate">{conversation.lastMessage}</p>
-                  {conversation.unread > 0 && (
-                    <span className="bg-purple-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
-                      {conversation.unread}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div> */}
 
       {/* Your Account at the bottom */}
       <div className="mt-auto mb-6 pt-4 border-t border-gray-200">

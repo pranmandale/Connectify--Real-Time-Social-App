@@ -2,61 +2,53 @@ import User from "../models/user.model.js";
 import uploadOnCloudinary from "../utils/cloudinary.js"
 import Notification from "../models/notification.model.js"
 import { io, getReceiverSocketId } from "../socketIO/Server.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import ApiError from "../utils/ApiError.js";
 
 
 
 
+export const fetchProfile = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
 
-export const fetechProfile = async (req, res) => {
-  try {
-    const userId = req.user._id;
+  // Fetch the user from DB with populated fields
+  const user = await User.findById(userId)
+    .populate("posts")
+    .populate("stories")
+    .populate("followers")
+    .populate("following");
 
-    // Fetch the user from DB with populated fields
-    const user = await User.findById(userId)
-      .populate("posts")
-      .populate("stories")
-
-
-    if (!user) {
-      return res.status(404).json({ message: "User does not exist" });
-    }
-
-    // Remove password
-    const { password, ...userData } = user.toObject();
-
-    return res.status(200).json({
-      message: "User fetched successfully",
-      user: userData,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: "Internal server error",
-      error: error.message,
-    });
+  if (!user) {
+    throw new ApiError(404, "User not found");
   }
-};
 
-export const suggestedUsers = async (req, res) => {
-  try {
+  // Remove password
+  const { password, ...userData } = user.toObject();
+
+  res.status(200).json({
+    message: "User fetched successfully",
+    user: userData,
+  });
+});
+
+export const suggestedUsers = asyncHandler( async(req, res) => {
+
     const users = await User.find({
       _id: { $ne: req.user._id }
     }).select("-password");
 
     if (!users || users.length === 0) {
-      return res.status(404).json({ message: "No users found" });
+      throw new ApiError(404, "No users found" );
     }
 
     return res.status(200).json({
       message: "Users fetched successfully",
       users
     });
-  } catch (error) {
-    return res.status(500).json({
-      message: "Internal server error",
-      error: error.message,
-    });
-  }
-};
+  
+    
+  
+});
 
 
 // export const editProfile = async (req, res) => {
@@ -129,20 +121,20 @@ const cleanFields = (obj) => {
   );
 };
 
-export const editProfile = async (req, res) => {
-  try {
+export const editProfile = asyncHandler( async(req, res) => {
+  
     const { name, userName, bio, gender, location, website } = req.body;
     const user = req.user;
 
     if (!user) {
-      return res.status(401).json({ message: "Unauthorized: user not found" });
+      throw new ApiError(401, "Unauthorized: user not found" );
     }
 
     // ✅ ensure username uniqueness
     if (userName) {
       const existingUser = await User.findOne({ userName }).select("_id");
       if (existingUser && existingUser._id.toString() !== user._id.toString()) {
-        return res.status(400).json({ message: "Username already in use" });
+        throw new ApiError(400, "Username already in use" );
       }
     }
 
@@ -153,7 +145,7 @@ export const editProfile = async (req, res) => {
         profileImage = await uploadOnCloudinary(req.file.path, "profiles");
       } catch (cloudErr) {
         console.error("Cloudinary upload failed:", cloudErr);
-        return res.status(500).json({ message: "Image upload failed" });
+        throw new ApiError(500,  "Image upload failed" );
       }
     }
 
@@ -191,53 +183,40 @@ export const editProfile = async (req, res) => {
         isVerified: user.isVerified,
       },
     });
-  } catch (error) {
-    console.error("Edit Profile Error:", error);
-    return res.status(500).json({
-      message: "Internal server error",
-      error: error.message,
-    });
-  }
-};
+  
+});
 
 
-export const getProfileByParams = async (req, res) => {
-  try {
+export const getProfileByParams = asyncHandler( async(req, res) => {
+  
     const userName = req.params.userName;
     const user = await User.findOne({ userName }).select("-password").populate("posts");
 
     if (!user) {
-      return res.status(400).json({
-        message: "user not found"
-      })
+      throw new ApiError(400, "user not found")
     }
 
     return res.status(200).json({
       message: "user fetched successfully",
       user
     })
-  } catch (error) {
-    return res.status(400).json({
-      message: "Internal server error",
-      error
-    })
-  }
-}
+
+})
 
 
-export const toggleFollow = async (req, res) => {
-  try {
+export const toggleFollow = asyncHandler( async(req, res) => {
+  
     const { targetUserId } = req.body;
     const currentUserId = req.user._id;
 
     if (targetUserId === currentUserId.toString())
-      return res.status(400).json({ message: "Cannot follow yourself" });
+      throw new ApiError(400,"Cannot follow yourself" );
 
     const currentUser = await User.findById(currentUserId);
     const targetUser = await User.findById(targetUserId);
 
     if (!currentUser || !targetUser)
-      return res.status(404).json({ message: "User not found" });
+      throw new ApiError(404,"User not found" );
 
     let action = "";
 
@@ -265,7 +244,6 @@ export const toggleFollow = async (req, res) => {
         io.to(receiverSocketId).emit("getNotification", newNotification);
       }
     }
-
     await currentUser.save();
     await targetUser.save();
 
@@ -274,14 +252,11 @@ export const toggleFollow = async (req, res) => {
       currentUserFollowing: currentUser.following,
       targetUserFollowers: targetUser.followers,
     });
-  } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
-  }
-};
+});
 
 
-export const getFollowers = async (req, res) => {
-  try {
+export const getFollowers = asyncHandler( async(req, res) => {
+
     const { userId } = req.params
     const { page = 1, limit = 10 } = req.query
 
@@ -296,24 +271,18 @@ export const getFollowers = async (req, res) => {
       })
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" })
+      throw new ApiError(404, "User not found" )
     }
 
     return res.status(200).json({
       message: "Followers fetched successfully",
       followers: user.followers,
     })
-  } catch (error) {
-    return res.status(500).json({
-      message: "Internal server error",
-      error: error.message,
-    })
-  }
-}
+})
 
 
-export const getFollowing = async (req, res) => {
-  try {
+
+export const getFollowing = asyncHandler( async (req, res) => {
     const { userId } = req.params
     const { page = 1, limit = 10 } = req.query
 
@@ -328,17 +297,11 @@ export const getFollowing = async (req, res) => {
       })
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" })
+      throw new ApiError(404, "User not found" )
     }
 
     return res.status(200).json({
       message: "Following fetched successfully",
       following: user.following,
     })
-  } catch (error) {
-    return res.status(500).json({
-      message: "Internal server error",
-      error: error.message,
-    })
-  }
-}
+})
