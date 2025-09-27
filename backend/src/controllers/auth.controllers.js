@@ -38,6 +38,7 @@ export const signUp = asyncHandler( async (req, res) => {
             secure: process.env.NODE_ENV === "production", // use secure cookies in production
             sameSite: "None",
             maxAge: 30 * 24 * 60 * 60 * 1000 ,
+            path: "/",
         });
 
         return res.status(201).json({
@@ -84,6 +85,7 @@ export const login =  asyncHandler (async(req, res) => {
             secure: process.env.NODE_ENV === "production", // use secure cookies in production
             sameSite: "None",
             maxAge: 30 * 24 * 60 * 60 * 1000,
+            path: "/",
         });
 
         return res.status(200).json({
@@ -97,6 +99,7 @@ export const logout = asyncHandler(async (req, res) => {
     httpOnly: true,
     secure: true,
     sameSite: "None",
+    path: "/",
   });
 
   return res.status(200).json({

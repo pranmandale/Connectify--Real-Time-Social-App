@@ -11,13 +11,13 @@ const server = http.createServer(app); // Wrap Express in HTTP server
 
 // ------------------ MIDDLEWARES ------------------
 app.use(express.json());
-app.set("trust proxy", 1);
+
 app.use(cors({
   origin: [
     "http://localhost:5173",
     "https://connectify-real-time-social-app-1.onrender.com"
   ], 
-  credentials: true,
+  credentials: true // ✅ allow cookies
 }));
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
