@@ -36,8 +36,9 @@ export const signUp = asyncHandler( async (req, res) => {
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production", // use secure cookies in production
-            sameSite: "Strict",
-            maxAge: 30 * 24 * 60 * 60 * 1000 
+            sameSite: "None",
+            maxAge: 30 * 24 * 60 * 60 * 1000 ,
+            domain: ".onrender.com"
         });
 
         return res.status(201).json({
@@ -83,8 +84,9 @@ export const login =  asyncHandler (async(req, res) => {
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production", // use secure cookies in production
-            sameSite: "Strict",
-            maxAge: 30 * 24 * 60 * 60 * 1000 
+            sameSite: "None",
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+            domain: ".onrender.com" 
         });
 
         return res.status(200).json({
@@ -93,40 +95,39 @@ export const login =  asyncHandler (async(req, res) => {
         })
 })
 
-export const logout = asyncHandler( async(req, res) => {
-  
-        res.clearCookie("refreshToken", {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "Strict" // fixed: added quotes
-        });
+export const logout = asyncHandler(async (req, res) => {
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+  });
 
-        return res.status(200).json({
-            message: "Logout successful"
-        });
-    
+  return res.status(200).json({
+    message: "Logout successful",
+  });
 });
 
-export const refreshToken = asyncHandler( async(req, res) => {
 
-    const token = req.cookies?.refreshToken;
+export const refreshToken = asyncHandler(async (req, res) => {
+  const token = req.cookies?.refreshToken;
 
-    if (!token) {
-      accessToken = null;
-      throw new ApiError(200, "No refresh token provided")  
-    }
+  if (!token) {
+    throw new ApiError(401, "No refresh token provided");
+  }
 
-    const user = await User.findByRefreshToken(token);
-    if (!user) {
-      throw new ApiError(200, "User not found or token invalid");
-    }
+  const user = await User.findByRefreshToken(token);
+  if (!user) {
+    throw new ApiError(403, "Invalid or expired refresh token");
+  }
 
-    const accessToken = await user.generateToken();
+  const accessToken = user.generateToken();
 
-    return res.status(200).json({
-      accessToken,
-    });
+  return res.status(200).json({
+    accessToken,
+  });
 });
+
+
 
 
 export const sendOtp = asyncHandler( async (req, res) => {
