@@ -1,6 +1,7 @@
 import { io } from "socket.io-client";
 
-const SOCKET_URL = "http://localhost:5005"; // your backend URL
+// const SOCKET_URL = "http://localhost:5005"; // your backend URL
+const SOCKET_URL = "https://connectify-real-time-social-app.onrender.com"
 let socket = null;
 
 /**
