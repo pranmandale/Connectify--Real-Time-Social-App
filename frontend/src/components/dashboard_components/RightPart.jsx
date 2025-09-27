@@ -10,57 +10,86 @@ const RightPart = () => {
   const navigate = useNavigate()
   const { profile, suggestedUsers } = useSelector((state) => state.user)
 
-
-
-  // const suggestedUsers = [
-  //   { id: 1, name: "sarah_jones", avatar: "/diverse-user-avatars.png", mutualFriends: 5 },
-  //   { id: 2, name: "alex_brown", avatar: "/diverse-user-avatars.png", mutualFriends: 3 },
-  //   { id: 3, name: "emma_davis", avatar: "/diverse-user-avatars.png", mutualFriends: 8 },
-  // ]
-
   return (
-    <div className="w-[25%] hidden lg:flex flex-col h-screen bg-white/80 backdrop-blur-sm p-6">
-      {/* Messages Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-gray-800 text-sm text-center font-semibold">Suggested for you</h2>
-        {/* <MessageCircle className="text-gray-500 cursor-pointer hover:text-purple-600 transition-colors" size={24} /> */}
-        <button className="text-sm text-gray-800 hover:text-purple-600 transition-colors">
+    <div className="w-[25%] hidden lg:flex xl:w-[25%] 2xl:w-[20%] flex-col h-screen bg-white/80 backdrop-blur-sm p-6 border-l border-gray-200/50">
+      {/* Suggested Users Header */}
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-gray-800 text-lg font-semibold">Suggested for you</h2>
+        <button className="text-sm text-purple-600 hover:text-purple-800 transition-colors font-medium">
           See All
         </button>
       </div>
-      <div className="space-y-4 pt-2">
-        {/* {console.log(profile?.following)} */}
-        {suggestedUsers?.length > 0 ? (
 
-          suggestedUsers.slice(0, 7).map((user) => <OtherUser key={user._id} user={user} />)
+      {/* Suggested Users List */}
+      <div className="space-y-4 flex-1 overflow-y-auto scrollbar-hide">
+        {suggestedUsers?.length > 0 ? (
+          suggestedUsers.slice(0, 8).map((user) => (
+            <div key={user._id} className="transform hover:scale-105 transition-transform duration-200">
+              <OtherUser user={user} />
+            </div>
+          ))
         ) : (
-          <p className="text-gray-500 text-sm">No suggestions available</p>
+          <div className="text-center py-8">
+            <p className="text-gray-500 text-sm">No suggestions available</p>
+            <p className="text-gray-400 text-xs mt-2">Follow more people to see suggestions</p>
+          </div>
         )}
       </div>
 
-      {/* Your Account at the bottom */}
-      <div className="mt-auto mb-6 pt-4 border-t border-gray-200">
-        {/* Heading */}
-        <span className="block text-gray-500 text-sm mb-2">Your Account</span>
+      {/* Your Account Section */}
+      <div className="mt-auto pt-6 border-t border-gray-200/70">
+        {/* Account Label */}
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-gray-500 text-sm font-medium">Your Account</span>
+          <button 
+            onClick={() => navigate('/settings')}
+            className="text-xs text-purple-600 hover:text-purple-800 transition-colors"
+          >
+            Settings
+          </button>
+        </div>
 
-        {/* Account Info */}
-        <div className="flex items-center space-x-4">
-          <img
-            src={profile?.profilePicture || "/placeholder.svg"}
-            alt="Profile"
-            className="w-14 h-14 rounded-full border-2 border-purple-200"
-          />
-          <div>
-            <h3
-              className="text-gray-800 font-semibold text-2xl cursor-pointer hover:text-purple-600 transition-colors"
-              onClick={() => navigate(`/profile/${profile?.userName}`)}
-            >
-              {profile?.userName}
-            </h3>
-            <p className="text-gray-500 text-md">{profile?.email}</p>
+        {/* Enhanced Account Info Card */}
+        <div 
+          className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-4 cursor-pointer hover:shadow-lg transition-all duration-300 border border-purple-100/50 group"
+          onClick={() => navigate(`/profile/${profile?.userName}`)}
+        >
+          <div className="flex items-center space-x-4">
+            <div className="relative">
+              <img
+                src={profile?.profilePicture || "/placeholder.svg"}
+                alt="Profile"
+                className="w-14 h-14 rounded-full border-3 border-white shadow-lg object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white"></div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-gray-800 font-bold text-lg truncate group-hover:text-purple-600 transition-colors">
+                {profile?.userName}
+              </h3>
+              <p className="text-gray-500 text-sm truncate">{profile?.email}</p>
+              <div className="flex items-center space-x-4 mt-2 text-xs text-gray-400">
+                <span>{profile?.followers?.length || 0} followers</span>
+                <span>{profile?.following?.length || 0} following</span>
+              </div>
+            </div>
           </div>
         </div>
+
+    
       </div>
+
+      {/* Custom scrollbar styles */}
+      <style jsx>{`
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </div>
   )
 }

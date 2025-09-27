@@ -13,6 +13,7 @@ import { addNotificationMsg } from './featurres/msgNotifications/msgNotiSlice';
 
 const App = () => {
   const { isAuthenticated, isInitialized } = useSelector(state => state.auth);
+  console.log(isAuthenticated)
   const dispatch = useDispatch();
 
   const [isAppReady, setIsAppReady] = useState(false);
