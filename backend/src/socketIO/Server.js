@@ -12,7 +12,10 @@ const server = http.createServer(app); // Wrap Express in HTTP server
 // ------------------ MIDDLEWARES ------------------
 app.use(express.json());
 app.use(cors({
-  origin: "http://localhost:5173", // Frontend URL
+  origin: [
+    "http://localhost:5173",
+    "https://connectify-real-time-social-app-1.onrender.com"
+  ], 
   credentials: true,
 }));
 app.use(cookieParser());
