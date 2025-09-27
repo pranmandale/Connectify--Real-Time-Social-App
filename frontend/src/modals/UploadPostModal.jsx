@@ -77,7 +77,7 @@ const UploadPostModal = ({ isOpen, onClose }) => {
 
         try {
             await toast.promise(
-                mutation.mutateAsync(formData),
+                mutation.mutateAsync(uploadFormData),
                 {
                     loading: "Uploading post...",
                     success: "Post uploaded successfully 🎉",
