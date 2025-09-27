@@ -38,14 +38,12 @@ export const signUp = asyncHandler( async (req, res) => {
             secure: process.env.NODE_ENV === "production", // use secure cookies in production
             sameSite: "None",
             maxAge: 30 * 24 * 60 * 60 * 1000 ,
-            domain: ".onrender.com"
         });
 
         return res.status(201).json({
             message: "User created successfully",
             accessToken,
         });
-    
 });
 
 export const login =  asyncHandler (async(req, res) => {
@@ -86,7 +84,6 @@ export const login =  asyncHandler (async(req, res) => {
             secure: process.env.NODE_ENV === "production", // use secure cookies in production
             sameSite: "None",
             maxAge: 30 * 24 * 60 * 60 * 1000,
-            domain: ".onrender.com" 
         });
 
         return res.status(200).json({
