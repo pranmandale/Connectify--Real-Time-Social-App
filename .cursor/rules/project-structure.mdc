@@ -1,0 +1,50 @@
+---
+alwaysApply: true
+---
+
+# Connectify Project Structure Guide
+
+## Overview
+Connectify is a full-stack social media application built with React frontend and Node.js/Express backend.
+
+## Project Architecture
+- **Frontend**: React 19 + Vite + Redux Toolkit + Tailwind CSS
+- **Backend**: Node.js + Express + MongoDB + Socket.io
+- **State Management**: Redux Toolkit with Redux Persist
+- **Real-time**: Socket.io for notifications and messaging
+
+## Directory Structure
+
+### Frontend (`frontend/`)
+- [src/App.jsx](mdc:frontend/src/App.jsx) - Main app component with authentication and socket setup
+- [src/pages/](mdc:frontend/src/pages/) - Route components (Dashboard, Login, Profile, etc.)
+- [src/components/](mdc:frontend/src/components/) - Reusable UI components
+  - [dashboard_components/](mdc:frontend/src/components/dashboard_components/) - Dashboard-specific components
+  - [common/](mdc:frontend/src/components/common/) - Shared components
+- [src/featurres/](mdc:frontend/src/featurres/) - Redux slices organized by feature
+- [src/hooks/](mdc:frontend/src/hooks/) - Custom React hooks
+- [src/modals/](mdc:frontend/src/modals/) - Modal components
+- [src/services/](mdc:frontend/src/services/) - API service layer
+- [src/store/](mdc:frontend/src/store/) - Redux store configuration
+- [src/utils/](mdc:frontend/src/utils/) - Utility functions
+- [src/validations/](mdc:frontend/src/validations/) - Form validation schemas
+
+### Backend (`backend/`)
+- [src/index.js](mdc:backend/src/index.js) - Server entry point
+- [src/controllers/](mdc:backend/src/controllers/) - Route handlers
+- [src/models/](mdc:backend/src/models/) - MongoDB/Mongoose models
+- [src/routes/](mdc:backend/src/routes/) - API route definitions
+- [src/middlewares/](mdc:backend/src/middlewares/) - Custom middleware
+- [src/socketIO/](mdc:backend/src/socketIO/) - Socket.io server setup
+- [src/utils/](mdc:backend/src/utils/) - Utility functions
+
+## Key Files
+- [frontend/src/pages/Dashboard.jsx](mdc:frontend/src/pages/Dashboard.jsx) - Main dashboard layout
+- [frontend/src/store/store.jsx](mdc:frontend/src/store/store.jsx) - Redux store with persistence
+- [frontend/src/App.jsx](mdc:frontend/src/App.jsx) - App initialization and socket setup
+- [backend/src/index.js](mdc:backend/src/index.js) - Server configuration and route registration
+
+## Environment Variables
+- Frontend uses `VITE_` prefix for environment variables
+- Backend uses standard `process.env` for configuration
+- Both projects have separate `.env` files

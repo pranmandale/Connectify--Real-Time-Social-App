@@ -1,0 +1,242 @@
+---
+description: Socket.io integration patterns and real-time communication
+---
+
+# Socket.io Integration Patterns
+
+## Socket Setup and Configuration
+
+### Frontend Socket Initialization
+```javascript
+// In socket.js
+import { io } from "socket.io-client";
+
+const initSocket = (userId) => {
+  const socket = io(import.meta.env.VITE_NODE_URL, {
+    withCredentials: true,
+    autoConnect: true,
+  });
+
+  // Join user-specific room
+  socket.emit("joinRoom", userId);
+  
+  return socket;
+};
+
+export { initSocket };
+```
+
+### Backend Socket Configuration
+```javascript
+// In socketIO/Server.js
+import { Server } from "socket.io";
+
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CLIENT_URL,
+    credentials: true
+  }
+});
+
+io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
+
+  socket.on("joinRoom", (userId) => {
+    socket.join(userId);
+    console.log(`User ${userId} joined room`);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+  });
+});
+```
+
+## Real-time Notification Patterns
+
+### Notification Socket Integration
+```javascript
+// In React components
+useEffect(() => {
+  if (!profile?._id) return;
+
+  const socket = initSocket(profile._id);
+
+  socket.on("getNotification", (notification) => {
+    dispatch(addNotification(notification));
+  });
+
+  return () => {
+    socket.off("getNotification");
+  };
+}, [dispatch, profile?._id]);
+```
+
+### Sending Notifications
+```javascript
+// In backend controllers
+const sendNotification = (receiverId, notificationData) => {
+  io.to(receiverId).emit("getNotification", notificationData);
+};
+```
+
+## Message Socket Patterns
+
+### Message Socket Integration
+```javascript
+// In React components
+useEffect(() => {
+  if (!profile?._id) return;
+
+  const socket = initSocket(profile._id);
+
+  socket.on("chatMessage", (message) => {
+    console.log("📨 Global chatMessage received:", message);
+    
+    const senderId = String(message.senderId?._id || message.senderId);
+    
+    // Don't mark self-messages as unread
+    if (senderId !== String(profile._id)) {
+      dispatch(addNotificationMsg({ senderId, message: message.message }));
+    }
+  });
+
+  return () => {
+    socket.off("chatMessage");
+  };
+}, [dispatch, profile?._id]);
+```
+
+### Sending Messages
+```javascript
+// In backend message controller
+const sendMessage = async (req, res, next) => {
+  try {
+    // Save message to database
+    const message = await Message.create(messageData);
+    
+    // Emit to receiver
+    io.to(receiverId).emit("chatMessage", message);
+    
+    res.status(200).json({
+      success: true,
+      message: "Message sent successfully",
+      data: message
+    });
+  } catch (error) {
+    next(new ApiError(error.message, 400));
+  }
+};
+```
+
+## Socket Event Patterns
+
+### Event Naming Conventions
+- Use descriptive, action-based names
+- Use camelCase for event names
+- Prefix with context when needed
+
+### Common Events
+```javascript
+// Connection events
+socket.on("connect", () => {});
+socket.on("disconnect", () => {});
+
+// Room management
+socket.on("joinRoom", (userId) => {});
+socket.on("leaveRoom", (userId) => {});
+
+// Notifications
+socket.on("getNotification", (notification) => {});
+
+// Messages
+socket.on("chatMessage", (message) => {});
+socket.on("typing", (data) => {});
+socket.on("stopTyping", (data) => {});
+```
+
+## Socket Cleanup Patterns
+
+### Component Cleanup
+```javascript
+useEffect(() => {
+  if (!profile?._id) return;
+
+  const socket = initSocket(profile._id);
+
+  // Set up event listeners
+  socket.on("eventName", handler);
+
+  // Cleanup function
+  return () => {
+    socket.off("eventName");
+    socket.disconnect();
+  };
+}, [dependencies]);
+```
+
+### Multiple Socket Cleanup
+```javascript
+useEffect(() => {
+  if (!profile?._id) return;
+
+  const socket = initSocket(profile._id);
+
+  const eventHandlers = {
+    getNotification: (notification) => dispatch(addNotification(notification)),
+    chatMessage: (message) => dispatch(addNotificationMsg(message))
+  };
+
+  // Set up all listeners
+  Object.entries(eventHandlers).forEach(([event, handler]) => {
+    socket.on(event, handler);
+  });
+
+  return () => {
+    // Clean up all listeners
+    Object.keys(eventHandlers).forEach(event => {
+      socket.off(event);
+    });
+    socket.disconnect();
+  };
+}, [dispatch, profile?._id]);
+```
+
+## Error Handling Patterns
+
+### Socket Error Handling
+```javascript
+socket.on("connect_error", (error) => {
+  console.error("Socket connection error:", error);
+  // Handle connection errors
+});
+
+socket.on("error", (error) => {
+  console.error("Socket error:", error);
+  // Handle general socket errors
+});
+```
+
+### Reconnection Handling
+```javascript
+socket.on("reconnect", (attemptNumber) => {
+  console.log("Socket reconnected after", attemptNumber, "attempts");
+  // Rejoin rooms, resync state, etc.
+});
+
+socket.on("reconnect_error", (error) => {
+  console.error("Socket reconnection error:", error);
+  // Handle reconnection failures
+});
+```
+
+## Best Practices
+- Always clean up socket listeners in useEffect cleanup
+- Use user-specific rooms for targeted messaging
+- Handle connection errors gracefully
+- Implement reconnection logic for reliability
+- Use consistent event naming conventions
+- Separate socket logic into custom hooks when possible
+- Avoid memory leaks by properly disconnecting sockets
+- Use TypeScript for better event type safety
+- Implement proper error handling for all socket events

@@ -1,0 +1,209 @@
+---
+globs: *Slice.js,*Slice.jsx
+---
+
+# Redux Toolkit Patterns and State Management
+
+## Redux Store Structure
+The store is configured in [frontend/src/store/store.jsx](mdc:frontend/src/store/store.jsx) with the following slices:
+- `auth` - Authentication state
+- `user` - User profile and data
+- `post` - Posts and feed data
+- `like` - Like functionality
+- `follow` - Follow/unfollow functionality
+- `story` - Stories data
+- `comment` - Comments data
+- `messages` - Chat messages
+- `online` - Online users
+- `notifications` - App notifications
+- `msgNotifications` - Message notifications (persisted)
+
+## Slice Structure Pattern
+```javascript
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "axios"
+
+const initialState = {
+    loading: false,
+    error: null,
+    data: null,
+    // ... other state properties
+}
+
+// Async thunks for API calls
+export const fetchData = createAsyncThunk(
+    "sliceName/fetchData",
+    async (params, { rejectWithValue, dispatch }) => {
+        try {
+            const response = await axios.get(`${API_URL}/endpoint`, {
+                headers: { 'Content-Type': 'application/json' },
+                withCredentials: true
+            });
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data || { message: error.message || "server error" });
+        }
+    }
+);
+
+const sliceName = createSlice({
+    name: "sliceName",
+    initialState,
+    reducers: {
+        clearError: (state) => {
+            state.error = null
+        },
+        // ... other synchronous reducers
+    },
+    extraReducers: (builder) => {
+        builder
+            .addCase(fetchData.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchData.fulfilled, (state, action) => {
+                state.loading = false;
+                state.data = action.payload;
+            })
+            .addCase(fetchData.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message || "Request failed";
+            });
+    }
+});
+
+export const { clearError } = sliceName.actions;
+export default sliceName.reducer;
+```
+
+## Async Thunk Patterns
+
+### API Call Pattern
+```javascript
+export const apiAction = createAsyncThunk(
+    "sliceName/actionName",
+    async (data, { rejectWithValue, dispatch }) => {
+        try {
+            const response = await axios.post(`${API_URL}/endpoint`, data, {
+                headers: { 'Content-Type': 'application/json' },
+                withCredentials: true
+            });
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data || { message: error.message || "server error" });
+        }
+    }
+);
+```
+
+### Token Management Pattern
+```javascript
+// In auth slice - dispatch token update
+dispatch(setAccessToken(response.data.accessToken));
+
+// In other slices - use token from store
+const token = getState().token.accessToken;
+const response = await axios.get(`${API_URL}/endpoint`, {
+    headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json' 
+    },
+    withCredentials: true
+});
+```
+
+## State Management Patterns
+
+### Authentication State
+```javascript
+const initialState = {
+    isAuthenticated: false,
+    isInitialized: false,
+    loading: false,
+    error: null,
+    user: undefined,
+}
+```
+
+### Data Fetching State
+```javascript
+const initialState = {
+    loading: false,
+    error: null,
+    data: [],
+    hasMore: false,
+    page: 1,
+}
+```
+
+### Notification State
+```javascript
+const initialState = {
+    notifications: [],
+    hasUnread: false,
+    loading: false,
+}
+```
+
+## Redux Persist Configuration
+```javascript
+// Configure persist for specific slices
+const persistConfig = {
+  key: "sliceName",
+  storage,
+};
+
+const persistedReducer = persistReducer(persistConfig, sliceReducer);
+
+// Use in store configuration
+export const store = configureStore({
+  reducer: {
+    sliceName: persistedReducer,
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: false, // required for redux-persist
+    }),
+});
+```
+
+## Component Integration Patterns
+
+### Using Redux in Components
+```javascript
+const Component = () => {
+  const dispatch = useDispatch();
+  const { data, loading, error } = useSelector(state => state.sliceName);
+
+  const handleAction = async () => {
+    try {
+      await dispatch(actionName(data)).unwrap();
+    } catch (error) {
+      console.error("Action failed:", error);
+    }
+  };
+};
+```
+
+### Toast Integration
+```javascript
+const handleAction = async () => {
+  try {
+    await toast.promise(dispatch(action()).unwrap(), {
+      loading: "Processing...",
+      success: (res) => res?.message || "Success",
+      error: (err) => err?.message || "Error occurred",
+    });
+  } catch (error) {
+    console.error("Action error", error);
+  }
+};
+```
+
+## Best Practices
+- Always handle loading, success, and error states
+- Use rejectWithValue for consistent error handling
+- Include withCredentials: true for cookie-based auth
+- Use unwrap() when you need to handle the promise directly
+- Clear errors when starting new operations
+- Use meaningful action names and error messages

@@ -1,0 +1,230 @@
+---
+globs: backend/**/*.js
+---
+
+# Backend API Patterns and Conventions
+
+## Project Structure
+- **Entry Point**: [backend/src/index.js](mdc:backend/src/index.js) - Server configuration and route registration
+- **Controllers**: [backend/src/controllers/](mdc:backend/src/controllers/) - Business logic and request handling
+- **Models**: [backend/src/models/](mdc:backend/src/models/) - MongoDB/Mongoose schemas
+- **Routes**: [backend/src/routes/](mdc:backend/src/routes/) - API endpoint definitions
+- **Middlewares**: [backend/src/middlewares/](mdc:backend/src/middlewares/) - Custom middleware functions
+- **Socket**: [backend/src/socketIO/](mdc:backend/src/socketIO/) - Socket.io server setup
+
+## API Route Structure
+All routes are prefixed with `/api/v1/`:
+- `/api/v1/auth` - Authentication endpoints
+- `/api/v1/user` - User management
+- `/api/v1/post` - Post operations
+- `/api/v1/story` - Story functionality
+- `/api/v1/like` - Like/unlike operations
+- `/api/v1/comment` - Comment operations
+- `/api/v1/message` - Messaging system
+- `/api/v1/notifications` - Notification system
+
+## Controller Pattern
+```javascript
+import asyncHandler from "../utils/asyncHandler.js";
+import ApiError from "../utils/ApiError.js";
+
+export const controllerFunction = asyncHandler(async (req, res, next) => {
+    try {
+        // Business logic here
+        const result = await someService();
+        
+        res.status(200).json({
+            success: true,
+            message: "Operation successful",
+            data: result
+        });
+    } catch (error) {
+        next(new ApiError(error.message, 400));
+    }
+});
+```
+
+## Model Pattern (Mongoose)
+```javascript
+import mongoose from "mongoose";
+
+const schemaName = new mongoose.Schema({
+    field1: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    field2: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "RelatedModel",
+        required: true
+    },
+    field3: {
+        type: Date,
+        default: Date.now
+    }
+}, {
+    timestamps: true
+});
+
+export default mongoose.model("ModelName", schemaName);
+```
+
+## Route Pattern
+```javascript
+import express from "express";
+import { controller1, controller2 } from "../controllers/controllerName.js";
+import { authMiddleware } from "../middlewares/auth.middleware.js";
+
+const router = express.Router();
+
+// Public routes
+router.route("/public-endpoint").get(controller1);
+
+// Protected routes
+router.use(authMiddleware); // Apply auth middleware to all routes below
+
+router.route("/protected-endpoint")
+    .get(controller1)
+    .post(controller2);
+
+export default router;
+```
+
+## Middleware Patterns
+
+### Authentication Middleware
+```javascript
+import jwt from "jsonwebtoken";
+import User from "../models/user.model.js";
+
+export const authMiddleware = async (req, res, next) => {
+    try {
+        const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");
+        
+        if (!token) {
+            throw new ApiError(401, "Access token is required");
+        }
+
+        const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        const user = await User.findById(decodedToken._id).select("-password");
+        
+        if (!user) {
+            throw new ApiError(401, "Invalid access token");
+        }
+
+        req.user = user;
+        next();
+    } catch (error) {
+        throw new ApiError(401, error?.message || "Invalid access token");
+    }
+};
+```
+
+### Error Handling Middleware
+```javascript
+export const errorHandler = (err, req, res, next) => {
+    let error = err;
+    
+    if (!(error instanceof ApiError)) {
+        const statusCode = error.statusCode || 500;
+        const message = error.message || "Internal Server Error";
+        error = new ApiError(statusCode, message, error?.errors || [], err.stack);
+    }
+
+    const response = {
+        success: false,
+        message: error.message,
+        ...(process.env.NODE_ENV === "development" && { stack: error.stack })
+    };
+
+    res.status(error.statusCode).json(response);
+};
+```
+
+## Response Patterns
+
+### Success Response
+```javascript
+res.status(200).json({
+    success: true,
+    message: "Operation successful",
+    data: result
+});
+```
+
+### Error Response
+```javascript
+res.status(400).json({
+    success: false,
+    message: "Error message",
+    error: errorDetails
+});
+```
+
+### Pagination Response
+```javascript
+res.status(200).json({
+    success: true,
+    message: "Data fetched successfully",
+    data: {
+        items: results,
+        pagination: {
+            page: page,
+            limit: limit,
+            total: totalCount,
+            pages: Math.ceil(totalCount / limit)
+        }
+    }
+});
+```
+
+## Socket.io Integration
+```javascript
+import { Server } from "socket.io";
+
+const io = new Server(server, {
+    cors: {
+        origin: process.env.CLIENT_URL,
+        credentials: true
+    }
+});
+
+io.on("connection", (socket) => {
+    console.log("User connected:", socket.id);
+
+    socket.on("joinRoom", (userId) => {
+        socket.join(userId);
+    });
+
+    socket.on("sendNotification", (data) => {
+        socket.to(data.receiverId).emit("getNotification", data);
+    });
+
+    socket.on("disconnect", () => {
+        console.log("User disconnected:", socket.id);
+    });
+});
+```
+
+## Environment Variables
+- `PORT` - Server port
+- `MONGODB_URI` - Database connection string
+- `JWT_SECRET` - JWT secret key
+- `ACCESS_TOKEN_SECRET` - Access token secret
+- `REFRESH_TOKEN_SECRET` - Refresh token secret
+- `CLOUDINARY_CLOUD_NAME` - Cloudinary cloud name
+- `CLOUDINARY_API_KEY` - Cloudinary API key
+- `CLOUDINARY_API_SECRET` - Cloudinary API secret
+- `CLIENT_URL` - Frontend URL for CORS
+
+## Best Practices
+- Use asyncHandler for all controller functions
+- Implement proper error handling with ApiError
+- Use meaningful HTTP status codes
+- Include proper CORS configuration
+- Validate input data before processing
+- Use environment variables for configuration
+- Implement proper authentication and authorization
+- Use middleware for cross-cutting concerns
+- Follow RESTful API conventions

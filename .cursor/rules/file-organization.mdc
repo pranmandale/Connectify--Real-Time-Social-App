@@ -1,0 +1,160 @@
+---
+alwaysApply: true
+---
+
+# File Organization and Naming Conventions
+
+## Frontend File Structure
+
+### Pages (`frontend/src/pages/`)
+- **Naming**: PascalCase with descriptive names
+- **Examples**: `Dashboard.jsx`, `Login.jsx`, `Profile.jsx`, `Messages.jsx`
+- **Purpose**: Route components that represent full pages
+
+### Components (`frontend/src/components/`)
+- **Dashboard Components**: `dashboard_components/` - Components specific to dashboard layout
+  - `LeftPart.jsx`, `Feed.jsx`, `RightPart.jsx`
+- **Common Components**: `common/` - Reusable components across the app
+  - `OtherUser.jsx`, `StoryCard.jsx`
+- **Utility Components**: `Loader.jsx` - Loading states and utilities
+
+### Redux Slices (`frontend/src/featurres/`)
+- **Naming**: camelCase with `Slice.jsx` suffix
+- **Organization**: Grouped by feature/domain
+- **Examples**:
+  - `users/authSlice.jsx` - Authentication state
+  - `users/userSlice.jsx` - User profile data
+  - `post/postSlice.jsx` - Posts and feed
+  - `messages/messageSlice.js` - Chat messages
+  - `notifications/notificationSlice.js` - App notifications
+
+### Hooks (`frontend/src/hooks/`)
+- **Naming**: camelCase with `Hook.js` suffix
+- **Organization**: Grouped by feature
+- **Examples**:
+  - `managePosts/postHook.js`
+  - `manageComments/commentHook.js`
+  - `manageStories/storyHook.js`
+
+### Modals (`frontend/src/modals/`)
+- **Naming**: PascalCase with `Modal.jsx` suffix
+- **Examples**: `CommentsModal.jsx`, `UploadPostModal.jsx`, `CreateStoryModal.jsx`
+
+### Services (`frontend/src/services/`)
+- **Naming**: camelCase with descriptive names
+- **Examples**: `axiosInstance.js`
+
+### Utils (`frontend/src/utils/`)
+- **Naming**: camelCase with descriptive names
+- **Examples**: `decoded.js`
+
+### Validations (`frontend/src/validations/`)
+- **Naming**: camelCase with `Validation.js` suffix
+- **Examples**: `loginValidation.js`, `signupValidation.js`
+
+## Backend File Structure
+
+### Controllers (`backend/src/controllers/`)
+- **Naming**: camelCase with `.controllers.js` suffix
+- **Examples**: `auth.controllers.js`, `user.controller.js`, `post.controller.js`
+
+### Models (`backend/src/models/`)
+- **Naming**: camelCase with `.model.js` suffix
+- **Examples**: `user.model.js`, `post.model.js`, `message.model.js`
+
+### Routes (`backend/src/routes/`)
+- **Naming**: camelCase with `.route.js` suffix
+- **Examples**: `auth.route.js`, `user.route.js`, `post.route.js`
+
+### Middlewares (`backend/src/middlewares/`)
+- **Naming**: camelCase with descriptive names
+- **Examples**: `auth.middleware.js`, `errorHandler.js`, `multer.js`
+
+### Utils (`backend/src/utils/`)
+- **Naming**: PascalCase for classes, camelCase for functions
+- **Examples**: `ApiError.js`, `asyncHandler.js`, `cloudinary.js`
+
+## File Naming Conventions
+
+### React Components
+- **Files**: PascalCase (e.g., `LeftPart.jsx`, `Feed.jsx`)
+- **Exports**: Default export with PascalCase name
+- **Imports**: Use PascalCase for component imports
+
+### JavaScript Modules
+- **Files**: camelCase (e.g., `authSlice.jsx`, `postHook.js`)
+- **Exports**: Named exports for utilities, default for main functionality
+- **Imports**: Use camelCase for module imports
+
+### Configuration Files
+- **Files**: lowercase with hyphens (e.g., `vite.config.js`, `eslint.config.js`)
+- **Environment**: `.env`, `.env.local`, `.env.production`
+
+## Import/Export Patterns
+
+### Component Imports
+```javascript
+// React and external libraries first
+import React, { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from "react-redux"
+
+// Internal components
+import LeftPart from '../components/dashboard_components/LeftPart'
+import Feed from '../components/dashboard_components/Feed'
+
+// Redux actions
+import { logout } from "../../featurres/users/authSlice"
+
+// Utilities and services
+import { toast } from "react-hot-toast"
+```
+
+### Redux Slice Exports
+```javascript
+// Named exports for actions
+export const { clearError, setInitialized } = sliceName.actions;
+
+// Default export for reducer
+export default sliceName.reducer;
+```
+
+### Utility Exports
+```javascript
+// Named exports for utilities
+export const utilityFunction = () => { /* ... */ };
+export const anotherUtility = () => { /* ... */ };
+
+// Default export for main functionality
+export default mainFunction;
+```
+
+## Directory Organization Principles
+
+### Feature-Based Organization
+- Group related files by feature/domain
+- Keep components, hooks, and slices together when they belong to the same feature
+- Separate concerns (UI, state, business logic)
+
+### Separation of Concerns
+- **Components**: UI and presentation logic
+- **Hooks**: Custom logic and state management
+- **Slices**: Global state management
+- **Services**: API calls and external integrations
+- **Utils**: Pure functions and helpers
+- **Validations**: Form validation schemas
+
+### Scalability Considerations
+- Use consistent naming patterns across the project
+- Group related functionality together
+- Keep files focused on single responsibilities
+- Use index files for clean imports when appropriate
+
+## Best Practices
+- Use descriptive names that clearly indicate purpose
+- Follow consistent naming conventions across the project
+- Group related files in appropriate directories
+- Use PascalCase for React components and classes
+- Use camelCase for functions, variables, and modules
+- Keep file names concise but descriptive
+- Use consistent file extensions (.jsx for React components, .js for utilities)
+- Organize imports in logical order (external, internal, relative)
