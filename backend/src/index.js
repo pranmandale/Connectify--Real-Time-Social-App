@@ -1,7 +1,7 @@
 
 import dotenv from "dotenv"
 import connectDB from "./db/connection.js"
-import errorHandler from "./middlewares/errorhandler.js";
+import errorHandler from "./middlewares/errorHandler.js";
 
 
 // import app + server from app.js
