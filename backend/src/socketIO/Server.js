@@ -26,7 +26,10 @@ app.use(express.urlencoded({ extended: true }));
 // ------------------ SOCKET.IO SETUP ------------------
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "https://connectify-real-time-social-app-1.onrender.com"
+    ],
     methods: ["GET", "POST"],
   },
 });
