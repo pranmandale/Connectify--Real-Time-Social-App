@@ -163,6 +163,7 @@ const Notifications = ({ userId }) => {
                   <img
                     src={notif.sender?.profilePicture || "/placeholder.svg"}
                     alt={notif.sender?.userName || "User"}
+                    loading="lazy"
                     className="w-14 h-14 rounded-full object-cover ring-3 ring-white shadow-lg transition-transform duration-300 group-hover:scale-105"
                   />
                   {/* Notification type indicator */}

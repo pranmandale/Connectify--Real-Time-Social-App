@@ -28,6 +28,7 @@ import OpenPostModal from "../modals/OpenPostModal"
 import UploadPostModal from "../modals/UploadPostModal"
 import { toast } from "react-hot-toast"
 import FollowModal from "../modals/FollowModal.jsx"
+import profileImage from "../assets/profileImage.jpg"
 
 //
 // 🔹 GridPost Component (extracts like/unlike + hover overlay)
@@ -87,6 +88,7 @@ const GridPost = ({ post, currentUserId, onClick }) => {
         <img
           src={mediaSrc || null}
           alt={post.caption || "Post"}
+          loading="lazy"
           className="w-full h-full object-cover rounded-lg"
         />
       )}
@@ -244,8 +246,9 @@ const Profile = () => {
             <div className="relative">
               <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 p-1">
                 <img
-                  src={profileData.profilePicture || "/placeholder.svg"}
+                  src={profileData.profilePicture || profileImage}
                   alt="Profile"
+                  loading="lazy"
                   className="w-full h-full rounded-full object-cover bg-white"
                 />
               </div>
@@ -336,7 +339,7 @@ const Profile = () => {
               <div className="text-gray-700">
                 <div className="font-medium mb-1">{profileData.name}</div>
                 <div className="text-sm whitespace-pre-line">
-                  {profileData.bio || "No bio available"}
+                  {profileData.bio}
                 </div>
               </div>
             </div>
@@ -429,6 +432,7 @@ const Profile = () => {
                     <img
                       src={post.image || null}
                       alt={`Saved Post ${post.id}`}
+                      loading="lazy"
                       className="w-full h-full object-cover rounded-lg"
                     />
                   </div>

@@ -138,7 +138,7 @@ const CreateStoryModal = ({ isOpen, onClose }) => {
                 {storyData.mediaType === "video" ? (
                   <video ref={videoRef} src={previewUrl} className="w-full h-full object-cover" controls />
                 ) : (
-                  <img src={previewUrl} alt="Story preview" className="w-full h-full object-cover" />
+                  <img src={previewUrl} alt="Story preview" loading="lazy" className="w-full h-full object-cover" />
                 )}
 
                 {/* Overlay Text */}

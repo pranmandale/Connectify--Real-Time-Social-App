@@ -3,6 +3,7 @@
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleFollowUser } from "../../featurres/users/userSlice";
+import profileImage from "../../assets/profileImage.jpg"
 
 const OtherUser = ({ user }) => {
   const navigate = useNavigate();
@@ -27,8 +28,9 @@ const OtherUser = ({ user }) => {
         <img
           src={user?.profilePicture && user.profilePicture.trim() !== ""
             ? user.profilePicture
-            : "/placeholder.svg"}
+            : profileImage}
           alt={user?.userName || "User"}
+          loading="lazy"
           className="w-10 h-10 rounded-full object-cover"
         />
 

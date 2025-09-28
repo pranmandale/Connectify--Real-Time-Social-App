@@ -26,6 +26,8 @@ import { useFetchStory } from "../../hooks/manageStories/storyHook.js"
 import { useFetchComments, useAddComment } from "../../hooks/manageComments/commentHook"
 import { fetchPostLikes, toggleLikePost } from "../../featurres/like/likeSlice.js"
 import { toggleFollowUser } from "../../featurres/users/userSlice.jsx"
+import profileImage from "../../assets/profileImage.jpg"
+
 
 const Feed = () => {
   const { profile } = useSelector((state) => state.user)
@@ -170,6 +172,7 @@ const Feed = () => {
               <img
                 src={profile?.profilePicture || "/placeholder.svg"}
                 alt="Profile"
+                loading="lazy"
                 className="w-6 h-6 rounded-full border-2 border-current"
               />
               {(isActive(`/profile/${profile?.userName}`) || activeItem.includes("/profile/")) && (
@@ -189,6 +192,7 @@ const Feed = () => {
 const PostCard = ({ post, currentUserId }) => {
   const [mediaIndex, setMediaIndex] = useState(0)
   const dispatch = useDispatch();
+  const navigate = useNavigate()
   const mediaArray = Array.isArray(post.mediaUrl) ? post.mediaUrl : [post.mediaUrl].filter(Boolean)
   const [postLikes, setPostLikes] = useState({
     likedByUser: false,
@@ -267,12 +271,15 @@ const PostCard = ({ post, currentUserId }) => {
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center space-x-3">
           <img
-            src={post.author?.profilePicture || "/placeholder.svg"}
+            src={post.author?.profilePicture || profileImage}
             alt={post.author?.userName || "User"}
+            loading="lazy"
             className="w-10 h-10 rounded-full object-cover"
           />
           <div>
-            <p className="text-gray-800 font-medium">{post.author?.userName || "Unknown"}</p>
+            <p 
+            onClick={() => navigate(`/profile/${post.author?.userName}`)}
+            className="text-gray-800 font-medium cursor-pointer">{post.author?.userName || "Unknown"}</p>
             <p className="text-gray-500 text-sm">{new Date(post.createdAt).toLocaleDateString()}</p>
           </div>
         </div>
@@ -394,6 +401,7 @@ const PostCard = ({ post, currentUserId }) => {
             <img
               src={profile?.profilePicture || "/placeholder.svg"}
               alt="Your profile"
+              loading="lazy"
               className="w-8 h-8 rounded-full flex-shrink-0"
             />
             <input

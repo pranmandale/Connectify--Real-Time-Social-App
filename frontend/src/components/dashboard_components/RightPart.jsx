@@ -60,6 +60,7 @@ const RightPart = () => {
               <img
                 src={profile?.profilePicture || "/placeholder.svg"}
                 alt="Profile"
+                loading="lazy"
                 className="w-14 h-14 rounded-full border-3 border-white shadow-lg object-cover group-hover:scale-105 transition-transform duration-300"
               />
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white"></div>

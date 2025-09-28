@@ -125,6 +125,7 @@ const UploadPostModal = ({ isOpen, onClose }) => {
                             <img
                                 src={profile?.profilePicture || "/diverse-user-avatars.png"}
                                 alt="Profile"
+                                loading="lazy"
                                 className="w-10 h-10 rounded-full object-cover"
                             />
                             <div>
@@ -181,7 +182,7 @@ const UploadPostModal = ({ isOpen, onClose }) => {
                                                 {item.type === "video" ? (
                                                     <video src={item.url} className="w-full h-32 object-cover rounded-lg" controls />
                                                 ) : (
-                                                    <img src={item.url} alt="" className="w-full h-32 object-cover rounded-lg" />
+                                                    <img src={item.url} alt="" loading="lazy" className="w-full h-32 object-cover rounded-lg" />
                                                 )}
                                                 <button
                                                     type="button"

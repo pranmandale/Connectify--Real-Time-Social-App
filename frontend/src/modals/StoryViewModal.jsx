@@ -163,8 +163,8 @@ const StoryViewModal = ({ isOpen, onClose, stories = [], initialIndex = 0 }) => 
         setShowLikeAnimation(false)
         setIsPaused(false)
       }, 1000)
-    }
   }
+}
 
   const createFloatingHeart = (x, y) => {
     const heart = document.createElement("div")
@@ -255,6 +255,7 @@ const StoryViewModal = ({ isOpen, onClose, stories = [], initialIndex = 0 }) => 
             <img
               src={activeStory.author?.profilePicture || "/diverse-user-avatars.png"}
               alt={activeStory.author?.userName}
+              loading="lazy"
               className="w-8 h-8 rounded-full object-cover border-2 border-white"
             />
             <div>
@@ -292,6 +293,7 @@ const StoryViewModal = ({ isOpen, onClose, stories = [], initialIndex = 0 }) => 
             <img
               src={activeStory.mediaUrl || "/placeholder.svg?height=800&width=400"}
               alt="Story"
+              loading="lazy"
               className="w-full h-full object-cover"
             />
           )}

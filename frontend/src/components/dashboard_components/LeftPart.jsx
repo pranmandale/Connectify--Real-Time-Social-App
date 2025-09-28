@@ -236,6 +236,7 @@ const LeftPart = () => {
               <img
                 src={profile?.profilePicture || "/placeholder.svg"}
                 alt="Profile"
+                loading="lazy"
                 className="w-6 h-6 rounded-full border-2 border-current"
               />
               {(isActive(`/profile/${profile?.userName}`) || activeItem.includes("/profile/")) && (

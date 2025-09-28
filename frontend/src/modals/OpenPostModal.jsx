@@ -280,19 +280,21 @@ const OpenPostModal = ({ isOpen, onClose, post, isOwnProfile, profileData }) => 
           <div className="w-full h-full flex items-center justify-center">
             {post.mediaType === "video" ? (
               <video
-                key={`${postId}-${currentMediaIndex}`}
-                src={mediaItems[currentMediaIndex]}
-                className="max-w-full max-h-full object-contain"
-                controls
-                loop
-                muted
-                playsInline
-                preload="metadata"
-              />
+              key={`${postId}-${currentMediaIndex}`}
+              src={mediaItems[currentMediaIndex]}
+              className="max-w-full max-h-full object-contain"
+              controls
+              loop
+              muted
+              playsInline
+              preload="none"   // 🚀 load only when user hits play
+              poster="/video-placeholder.jpg" // optional preview image
+            />            
             ) : (
               <img
                 src={mediaItems[currentMediaIndex] || "/placeholder.svg"}
                 alt={post.caption || "Post"}
+                loading="lazy"
                 className="max-w-full max-h-full object-contain"
                 onError={(e) => {
                   e.currentTarget.src = "/placeholder.svg"
@@ -310,6 +312,7 @@ const OpenPostModal = ({ isOpen, onClose, post, isOwnProfile, profileData }) => 
               <img
                 src={profileData.profilePicture || "/diverse-user-avatars.png"}
                 alt={`${profileData.userName}'s profile`}
+                loading="lazy"
                 className="w-full h-full rounded-full object-cover bg-white"
               />
             </div>
@@ -373,6 +376,7 @@ const OpenPostModal = ({ isOpen, onClose, post, isOwnProfile, profileData }) => 
                   <img
                     src={profileData.profilePicture || "/diverse-user-avatars.png"}
                     alt={`${profileData.userName}'s profile`}
+                    loading="lazy"
                     className="w-full h-full rounded-full object-cover bg-white"
                   />
                 </div>
@@ -406,6 +410,7 @@ const OpenPostModal = ({ isOpen, onClose, post, isOwnProfile, profileData }) => 
                     <img
                       src={comment.author.profilePicture || "/diverse-user-avatars.png"}
                       alt={`${comment.author.userName}'s avatar`}
+                      loading="lazy"
                       className="w-full h-full rounded-full object-cover bg-white"
                     />
                   </div>
@@ -453,6 +458,7 @@ const OpenPostModal = ({ isOpen, onClose, post, isOwnProfile, profileData }) => 
                               <img
                                 src={reply.author.profilePicture || "/diverse-user-avatars.png"}
                                 alt={`${reply.author.userName}'s avatar`}
+                                loading="lazy"
                                 className="w-full h-full object-cover"
                               />
                             </div>
@@ -527,6 +533,7 @@ const OpenPostModal = ({ isOpen, onClose, post, isOwnProfile, profileData }) => 
                 <img
                   src={profile?.profilePicture || "/diverse-user-avatars.png"}
                   alt="Your profile"
+                  loading="lazy"
                   className="w-full h-full rounded-full object-cover bg-white"
                 />
               </div>

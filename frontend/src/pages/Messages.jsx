@@ -198,6 +198,7 @@ const Messages = () => {
                         <img
                           src={user.profilePicture || "/placeholder.svg"}
                           alt={user.name}
+                          loading="lazy"
                           className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover"
                         />
                         {/* Online dot */}
@@ -259,6 +260,7 @@ const Messages = () => {
                     <img
                       src={selectedUser.profilePicture}
                       alt={selectedUser.name}
+                      loading="lazy"
                       className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
                     />
                     {onlineUsers.includes(String(selectedUser._id)) && (

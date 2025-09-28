@@ -2,6 +2,7 @@ import { useState } from "react"
 import { Plus } from "lucide-react"
 import CreateStoryModal from "../../modals/CreateStoryModal"
 import StoryViewModal from "../../modals/StoryViewModal"
+import profileImage from "../../assets/profileImage.jpg"
 
 const StoryCard = ({ profileImage, userName, isOwn, stories = [] }) => {
   const [showCreateStoryModal, setShowCreateStoryModal] = useState(false)
@@ -34,8 +35,9 @@ const StoryCard = ({ profileImage, userName, isOwn, stories = [] }) => {
             }`}
           >
             <img
-              src={profileImage || "/placeholder.svg"}
+              src={profileImage || profileImage}
               alt={userName}
+              loading="lazy"
               className="w-full h-full rounded-full object-cover bg-white p-0.5"
             />
           </div>

@@ -135,6 +135,7 @@ const CommentsModal = ({ isOpen, onClose, postId, postOwner }) => {
                           "/diverse-user-avatars.png"
                         }
                         alt={comment.author.userName}
+                        loading="lazy"
                         className="w-full h-full rounded-full object-cover bg-white"
                       />
                     </div>
@@ -183,6 +184,7 @@ const CommentsModal = ({ isOpen, onClose, postId, postOwner }) => {
                                 "/diverse-user-avatars.png"
                               }
                               alt={reply.author.userName}
+                              loading="lazy"
                               className="w-full h-full rounded-full object-cover bg-white"
                             />
                           </div>
@@ -252,6 +254,7 @@ const CommentsModal = ({ isOpen, onClose, postId, postOwner }) => {
               <img
                 src={profile?.profilePicture || "/diverse-user-avatars.png"}
                 alt="Your profile"
+                loading="lazy"
                 className="w-full h-full rounded-full object-cover bg-white"
               />
             </div>

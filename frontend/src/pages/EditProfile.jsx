@@ -143,6 +143,7 @@ const EditProfile = () => {
                   <img
                     src={previewImage || "/diverse-user-avatars.png"}
                     alt="Profile"
+                    loading="lazy"
                     className="w-full h-full rounded-full object-cover bg-white"
                   />
                 </div>

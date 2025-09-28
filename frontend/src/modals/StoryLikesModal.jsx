@@ -78,6 +78,7 @@ const StoryLikesModal = ({ isOpen, onClose, storyId }) => {
                   <img
                     src={user.profilePicture || "/diverse-user-avatars.png"}
                     alt={user.userName}
+                    loading="lazy"
                     className="w-10 h-10 rounded-full object-cover"
                   />
                   <div className="ml-3">
