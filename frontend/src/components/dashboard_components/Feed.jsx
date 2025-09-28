@@ -76,7 +76,7 @@ const Feed = () => {
           <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
             <StoryCard
               key="own"
-              profileImage={profile?.profilePicture}
+              profileImage={profile?.profilePicture || profileImage}
               userName="Your Story"
               isOwn
               stories={profile?.stories || []}

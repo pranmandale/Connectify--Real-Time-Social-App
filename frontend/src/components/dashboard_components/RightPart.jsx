@@ -5,6 +5,7 @@ import { useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
 import dp from "../../assets/s1.png"
 import OtherUser from "../common/OtherUser"
+import profileImage from "../../assets/profileImage.jpg"
 
 const RightPart = () => {
   const navigate = useNavigate()
@@ -58,7 +59,7 @@ const RightPart = () => {
           <div className="flex items-center space-x-4">
             <div className="relative">
               <img
-                src={profile?.profilePicture || "/placeholder.svg"}
+                src={profile?.profilePicture || profileImage}
                 alt="Profile"
                 loading="lazy"
                 className="w-14 h-14 rounded-full border-3 border-white shadow-lg object-cover group-hover:scale-105 transition-transform duration-300"
