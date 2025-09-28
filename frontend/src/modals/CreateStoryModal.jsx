@@ -78,9 +78,6 @@ const CreateStoryModal = ({ isOpen, onClose }) => {
       formData.append("textPositionX", storyData.textPosition.x)
       formData.append("textPositionY", storyData.textPosition.y)
 
-      // console.log("Story data:", Object.fromEntries(formData))
-      // await new Promise((resolve) => setTimeout(resolve, 1500))
-
 
       await toast.promise(
         dispatch(uploadStory(formData)).unwrap(),

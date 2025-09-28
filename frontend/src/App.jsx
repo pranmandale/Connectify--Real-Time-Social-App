@@ -13,7 +13,7 @@ import { addNotificationMsg } from './featurres/msgNotifications/msgNotiSlice';
 
 const App = () => {
   const { isAuthenticated, isInitialized } = useSelector(state => state.auth);
-  console.log(isAuthenticated)
+  // console.log(isAuthenticated)
   const dispatch = useDispatch();
 
   const [isAppReady, setIsAppReady] = useState(false);
@@ -66,7 +66,7 @@ useEffect(() => {
   const socket = initSocket(profile._id);
 
   socket.on("chatMessage", (message) => {
-    console.log("📨 Global chatMessage received:", message);
+    // console.log("📨 Global chatMessage received:", message);
 
     const senderId = String(message.senderId?._id || message.senderId);
 

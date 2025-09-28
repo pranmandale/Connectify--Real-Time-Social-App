@@ -8,6 +8,10 @@ import { toast } from "react-hot-toast"
 import { getStoryById, markStoryViewed } from "../featurres/story/storySlice"
 import { fetchStoryLikes, toggleLikeStory } from "../featurres/like/likeSlice"
 import StoryLikesModal from "./StoryLikesModal"
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativeTime);
+
 
 const StoryViewModal = ({ isOpen, onClose, stories = [], initialIndex = 0 }) => {
   const { profile } = useSelector((state) => state.user)
@@ -211,6 +215,7 @@ const StoryViewModal = ({ isOpen, onClose, stories = [], initialIndex = 0 }) => 
   const handleCloseLikesModal = () => {
     setIsLikesModalOpen(false)
   }
+ 
 
 
   if (!isOpen || !activeStory) return null
@@ -254,7 +259,7 @@ const StoryViewModal = ({ isOpen, onClose, stories = [], initialIndex = 0 }) => 
             />
             <div>
               <p className="text-white font-medium text-sm">{activeStory.author?.userName}</p>
-              <p className="text-white/70 text-xs">{activeStory.timeAgo || "Just now"}</p>
+              <p className="text-white/70 text-xs">{dayjs(activeStory.createdAt).fromNow()}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">

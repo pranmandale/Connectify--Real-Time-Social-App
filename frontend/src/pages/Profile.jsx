@@ -149,7 +149,7 @@ const Profile = () => {
     (state) => state.user
   )
 
-  console.log(profile.followers)
+  // console.log(profile.followers)
 
   const { posts } = useSelector((state) => state.post)
 
@@ -197,8 +197,8 @@ const Profile = () => {
 
   const isFollowing =
     profile?.following?.some(
-      (id) => id?.toString() === profileData?._id?.toString()
-    ) || false;
+      (f) => (f._id || f).toString() === profileData?._id?.toString()
+    );
 
   const handleFollowToggle = () => {
     // Dispatch async toggle; Redux will update the profile.following globally
@@ -244,7 +244,7 @@ const Profile = () => {
             <div className="relative">
               <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 p-1">
                 <img
-                  src={profileData.profilePicture || null}
+                  src={profileData.profilePicture || "/placeholder.svg"}
                   alt="Profile"
                   className="w-full h-full rounded-full object-cover bg-white"
                 />
@@ -285,7 +285,7 @@ const Profile = () => {
                   ) : (
                     <button
                       onClick={handleFollowToggle}
-                      className={`px-6 py-2 rounded-lg font-medium transition ${isFollowing
+                      className={`px-6 py-2 cursor-pointer rounded-lg font-medium transition ${isFollowing
                           ? "bg-gray-200 text-gray-800 hover:bg-gray-300"
                           : "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600"
                         }`}

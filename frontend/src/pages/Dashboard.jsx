@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux'
 
 const Dashboard = () => {
   const {profile} = useSelector(state => state.user);
-  console.log(profile);
+  // console.log(profile);
   
   return (
     <div className="w-full flex justify-center items-start bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 min-h-screen">

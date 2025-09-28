@@ -43,7 +43,7 @@ export const getStoryById = createAsyncThunk(
   async (storyId, { rejectWithValue }) => {
     try {
       const res = await axiosNodeClient.get(`/story/getStoryDetails/${storyId}`);
-      console.log(res.data)
+      // console.log(res.data)
       return res.data.story;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);

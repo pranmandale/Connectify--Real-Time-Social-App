@@ -9,10 +9,12 @@ const OtherUser = ({ user }) => {
   const dispatch = useDispatch();
   const { profile } = useSelector((state) => state.user);
 
-  // derive following from Redux state
+ 
+
   const isFollowing = profile?.following?.some(
-    (id) => id.toString() === user._id.toString()
+    (f) => (f._id || f).toString() === user._id.toString()
   );
+
 
   const handleFollowToggle = () => {
     // Dispatch async toggle; Redux will update the profile.following globally
@@ -23,10 +25,13 @@ const OtherUser = ({ user }) => {
     <div className="flex items-center justify-between">
       <div className="flex items-center space-x-3">
         <img
-          src={user.profilePicture || "/placeholder.svg"}
-          alt={user.userName}
+          src={user?.profilePicture && user.profilePicture.trim() !== ""
+            ? user.profilePicture
+            : "/placeholder.svg"}
+          alt={user?.userName || "User"}
           className="w-10 h-10 rounded-full object-cover"
         />
+
         <div>
           <p
             className="text-gray-800 text-sm font-medium cursor-pointer"

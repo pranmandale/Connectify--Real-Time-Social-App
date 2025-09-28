@@ -19,7 +19,7 @@ const FollowModal = ({ isOpen, onClose, userId, userName, type = "followers", li
   const dispatch = useDispatch()
   const { followersList, followingList, error } = useSelector(state => state.follow);
 
-  console.log(followersList)
+  // console.log(followersList)
   const navigate = useNavigate()
 
   // Mock data - replace with actual API calls

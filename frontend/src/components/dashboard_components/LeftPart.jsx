@@ -19,18 +19,24 @@ import { useEffect, useState } from "react";
 import { initSocket } from "../../socket";
 import { addNotification } from "../../featurres/notifications/notificationSlice";
 import { useLocation, useNavigate } from "react-router-dom";
+import CreateStoryModal from "../../modals/CreateStoryModal";
 
 const LeftPart = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
   const [activeItem, setActiveItem] = useState("/dashboard");
+  const [showCreateStoryModal, setShowCreateStoryModal] = useState(false);
 
   const { profile } = useSelector((state) => state.user);
   const { hasUnread } = useSelector((state) => state.notifications);
   const { unreadUsers } = useSelector((state) => state.msgNotifications);
 
   // console.log(unreadUsers);
+
+  const handleCreateStory = () => {
+    setShowCreateStoryModal(true);
+  };
 
   const handleLogout = async () => {
     try {
@@ -45,6 +51,11 @@ const LeftPart = () => {
   };
 
   const handleNavigation = (path) => {
+    if (path === "/create") {
+      setShowCreateStoryModal(true); // open modal instead of navigating
+      return;
+    }
+
     setActiveItem(path);
     navigate(path);
   };
@@ -190,7 +201,7 @@ const LeftPart = () => {
               >
                 <div className="relative">
                   <Icon size={22} className="transition-transform duration-200" />
-                  
+
                   {/* Mobile Notifications Badge */}
                   {item.label === "Notifications" && hasUnread && (
                     <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
@@ -202,7 +213,7 @@ const LeftPart = () => {
                       {unreadUsers.length > 9 ? '9+' : unreadUsers.length}
                     </span>
                   )}
-                  
+
                   {/* Active indicator dot */}
                   {isActiveItem && (
                     <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-purple-600 rounded-full"></div>
@@ -234,10 +245,17 @@ const LeftPart = () => {
             <span className="text-xs font-medium mt-1 hidden sm:block">Profile</span>
           </div>
         </div>
+        {showCreateStoryModal && (
+          <CreateStoryModal
+            isOpen={showCreateStoryModal}
+            onClose={() => setShowCreateStoryModal(false)}
+          />
+        )}
+
       </div>
 
       {/* Custom styles for animations */}
-      <style jsx>{`
+      <style>{`
         @keyframes float {
           0%, 100% {
             transform: translateY(0px);

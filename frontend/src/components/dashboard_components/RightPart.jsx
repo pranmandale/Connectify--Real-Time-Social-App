@@ -9,6 +9,7 @@ import OtherUser from "../common/OtherUser"
 const RightPart = () => {
   const navigate = useNavigate()
   const { profile, suggestedUsers } = useSelector((state) => state.user)
+  // console.log(suggestedUsers)
 
   return (
     <div className="w-[25%] hidden lg:flex xl:w-[25%] 2xl:w-[20%] flex-col h-screen bg-white/80 backdrop-blur-sm p-6 border-l border-gray-200/50">
@@ -75,12 +76,10 @@ const RightPart = () => {
             </div>
           </div>
         </div>
-
-    
       </div>
 
       {/* Custom scrollbar styles */}
-      <style jsx>{`
+      <style>{`
         .scrollbar-hide {
           -ms-overflow-style: none;
           scrollbar-width: none;

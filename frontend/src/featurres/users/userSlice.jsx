@@ -71,6 +71,7 @@ export const searchUsers = createAsyncThunk("user/searchUsers", async (searchQue
 export const toggleFollowUser = createAsyncThunk("user/toggleFollowUser", async (targetUserId, { rejectWithValue }) => {
   try {
     const res = await axiosNodeClient.post("/user/followUser", { targetUserId });
+    // console.log(res.data);
     return res.data; // return full payload: { action, currentUserFollowing, targetUserFollowers }
   } catch (error) {
     return rejectWithValue(error.response?.data?.message || error.message);
@@ -130,9 +131,16 @@ const userSlice = createSlice({
 
       // Toggle follow
       .addCase(toggleFollowUser.fulfilled, (state, action) => {
-        const { currentUserFollowing } = action.payload;
-        state.profile.following = currentUserFollowing || state.profile.following;
+        const { action: actionType, currentUserFollowing } = action.payload;
+
+        if (actionType === "followed") {
+          state.profile.following = [...currentUserFollowing];
+        } else if (actionType === "unfollowed") {
+          state.profile.following = [...currentUserFollowing];
+        }
       })
+
+
       .addCase(toggleFollowUser.rejected, (state, action) => { state.error = action.payload; });
   },
 });

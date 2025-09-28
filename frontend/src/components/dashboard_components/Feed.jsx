@@ -31,7 +31,8 @@ const Feed = () => {
   const { profile } = useSelector((state) => state.user)
   const { hasUnread } = useSelector((state) => state.notifications)
   const { unreadUsers } = useSelector((state) => state.msgNotifications)
-  const { data: suggestedPosts, isLoading: postsLoading, error: postsError } = usePostSuggested()
+  const { data: suggestedPosts, isLoading: postsLoading, error: postsError } = usePostSuggested();
+  // console.log(suggestedPosts)
   const { data: allStories, isLoading: storyLoading, error: storyError } = useFetchStory()
 
   const [isStoryModalOpen, setIsStoryModalOpen] = useState(false)
@@ -197,8 +198,15 @@ const PostCard = ({ post, currentUserId }) => {
   const [isCommentsOpen, setIsCommentsOpen] = useState(false)
 
    const { profile } = useSelector((state) => state.user)
+  // console.log(post.author);
+  // const isFollowing = profile?.following?.some(id => id.toString() === post.author?._id?.toString())
+  const isFollowing = profile?.following?.some(
+    f => (f._id || f).toString() === post.author?._id?.toString()
+  )
+  
+  
 
-  const isFollowing = profile?.following?.some(id => id.toString() === post.author?._id?.toString())
+ 
 
   // Comments hooks
   const { data: commentsData, isLoading: commentsLoading, error: commentsError } = useFetchComments("Post", post._id)
@@ -272,7 +280,7 @@ const PostCard = ({ post, currentUserId }) => {
           {post.author?._id !== profile?._id && (
             <button
               onClick={handleFollowToggle}
-              className="text-sm font-medium transition-colors text-purple-600 hover:text-purple-700"
+              className="text-sm font-medium transition-colors text-purple-600 hover:text-purple-700 cursor-pointer"
             >
               {isFollowing ? "Unfollow" : "Follow"}
             </button>

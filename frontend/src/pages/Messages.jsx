@@ -196,7 +196,7 @@ const Messages = () => {
                     <div className="flex items-center space-x-3 relative">
                       <div className="relative">
                         <img
-                          src={user.profilePicture}
+                          src={user.profilePicture || "/placeholder.svg"}
                           alt={user.name}
                           className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover"
                         />
